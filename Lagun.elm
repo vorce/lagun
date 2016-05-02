@@ -2,7 +2,7 @@ module Lagun (..) where
 
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (placeholder, value)
+import Html.Attributes exposing (placeholder, value, class)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json exposing ((:=))
@@ -59,14 +59,14 @@ view address { specUrl, spec } =
   case spec of
     Maybe.Just spec ->
       div
-        []
+        [ class "container" ]
         [ input [ placeholder specUrl, value specUrl ] []
         , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Fetch & Render spec" ]
         , div
             []
             [ h1 [] [ text spec.info.title ]
-            , h2 [] [ text spec.info.description ]
-            , p [] [ text spec.info.version ]
+            , p [] [ text spec.info.description ]
+            , p [] [ text ("Version: " ++ spec.info.version) ]
             , hr [] []
             , pathList spec.paths
             ]
@@ -74,7 +74,7 @@ view address { specUrl, spec } =
 
     Maybe.Nothing ->
       div
-        []
+        [ class "container" ]
         [ p [] [ text "No API specification found. Try fetching one!" ]
         , input [ placeholder specUrl, value specUrl ] []
         , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Fetch & Render spec" ]
@@ -95,11 +95,11 @@ methodList ms =
 
 pathEntry : ( String, Methods ) -> Html
 pathEntry ( p, ms ) =
-  li
+  dt
     []
     [ div
         []
-        [ h4 [] [ text p ]
+        [ h5 [] [ text p ]
         , methodList ms
         ]
     ]
@@ -109,9 +109,7 @@ pathList : Paths -> Html
 pathList paths =
   div
     []
-    [ h3 [] [ text "Paths" ]
-    , ul [] (List.map pathEntry (Dict.toList paths))
-    ]
+    [ dl [] (List.map pathEntry (Dict.toList paths)) ]
 
 
 

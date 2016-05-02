@@ -5,7 +5,7 @@ An alternative to swagger-ui.
 
 ## Build
 
-  elm-make Main.elm
+  elm-make Main.elm --output elm.js
 
 Open `index.html`
 
@@ -16,6 +16,6 @@ Open `index.html`
 
 ## TODO / Explore
 
-- Add nice CSS
+
 - Add possibility to try out requests. Buttons!
-- Complete json parsing into model. Move that code into its own file. 
+- Complete json parsing into model. Move that code into its own file.
