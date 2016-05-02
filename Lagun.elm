@@ -2,10 +2,11 @@ module Lagun (..) where
 
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (placeholder, value)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json exposing ((:=))
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Task
 
 
@@ -40,7 +41,7 @@ update action model =
       )
 
     RenderSpec maybeSpec ->
-      ( Model "hello" maybeSpec
+      ( Model model.specUrl maybeSpec
       , Effects.none
       )
 
@@ -49,7 +50,6 @@ update action model =
 
 
 
---RenderSpec maybeSpec ->
 -- VIEW
 
 
@@ -66,6 +66,8 @@ view address { specUrl, spec } =
             [ h1 [] [ text spec.info.title ]
             , h2 [] [ text spec.info.description ]
             , p [] [ text spec.info.version ]
+            , hr [] []
+            , pathList address spec.paths
             ]
         ]
 
@@ -78,8 +80,33 @@ view address { specUrl, spec } =
         ]
 
 
+pathEntry : Signal.Address Action -> Path -> Html
+pathEntry address p =
+  li
+    []
+    [ text (fst p) ]
+
+
+pathList : Signal.Address Action -> List Path -> Html
+pathList address paths =
+  div
+    []
+    [ h3 [] [ text "Paths" ]
+    , ul [] (List.map (pathEntry address) paths)
+    ]
+
+
 
 -- Effects
+
+
+debugOutput : a -> a
+debugOutput foo =
+  let
+    log =
+      Debug.log "Http error spec" foo
+  in
+    foo
 
 
 getJsonSpec : String -> Effects Action
@@ -95,11 +122,74 @@ getJsonSpec url =
 
 
 type alias Spec =
-  { info : Info }
+  { info : Info, paths : List Path }
 
 
 type alias Info =
   { title : String, description : String, version : String }
+
+
+type alias Path =
+  ( String, List ( String, String ) )
+
+
+type alias Parameter =
+  { paramIn : String, name : String, description : String }
+
+
+type alias Response =
+  { description : String }
+
+
+type alias Method =
+  { summary : String, description : String, consumes : List String, produces : List String, parameters : List Parameter, responses : List ( String, Response ) }
+
+
+decodeParameter : Json.Decoder Parameter
+decodeParameter =
+  Json.object3
+    Parameter
+    ("in" := Json.string)
+    ("name" := Json.string)
+    ("description" := Json.string)
+
+
+decodeResponse : Json.Decoder Response
+decodeResponse =
+  Json.object1
+    Response
+    ("description" := Json.string)
+
+
+decodeResponses : Json.Decoder (List ( String, Response ))
+decodeResponses =
+  Json.keyValuePairs decodeResponse
+
+
+decodeMethod : Json.Decoder Method
+decodeMethod =
+  Json.object6
+    Method
+    ("summary" := Json.string)
+    ("description" := Json.string)
+    ("consumes" := Json.list Json.string)
+    ("produces" := Json.list Json.string)
+    ("parameters" := Json.list decodeParameter)
+    decodeResponses
+
+
+decodePath : Json.Decoder (List ( String, String ))
+decodePath =
+  Json.keyValuePairs
+    ("summary" := Json.string)
+
+
+decodePaths : Json.Decoder (List ( String, List ( String, String ) ))
+decodePaths =
+  Json.at
+    [ "paths" ]
+    <| Json.keyValuePairs
+        decodePath
 
 
 decodeInfo : Json.Decoder Info
@@ -115,15 +205,10 @@ decodeInfo =
 
 decodeSpec : Json.Decoder Spec
 decodeSpec =
-  Json.object1
+  Json.object2
     Spec
-    ("info"
-      := Json.object3
-          Info
-          ("title" := Json.string)
-          ("description" := Json.string)
-          ("version" := Json.string)
-    )
+    decodeInfo
+    decodePaths
 
 
 
