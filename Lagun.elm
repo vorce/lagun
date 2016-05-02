@@ -6,7 +6,6 @@ import Html.Attributes exposing (placeholder, value)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json exposing ((:=))
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Task
 import Dict exposing (Dict)
 import String
