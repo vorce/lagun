@@ -18,4 +18,4 @@ Open `index.html`
 
 - Add nice CSS
 - Add possibility to try out requests. Buttons!
-- Complete json parsing into model 
+- Complete json parsing into model. Move that code into its own file. 

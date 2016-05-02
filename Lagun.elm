@@ -8,6 +8,8 @@ import Http
 import Json.Decode as Json exposing ((:=))
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Task
+import Dict exposing (Dict)
+import String
 
 
 -- MODEL
@@ -67,7 +69,7 @@ view address { specUrl, spec } =
             , h2 [] [ text spec.info.description ]
             , p [] [ text spec.info.version ]
             , hr [] []
-            , pathList address spec.paths
+            , pathList spec.paths
             ]
         ]
 
@@ -80,19 +82,36 @@ view address { specUrl, spec } =
         ]
 
 
-pathEntry : Signal.Address Action -> Path -> Html
-pathEntry address p =
+methodEntry : ( String, Method ) -> Html
+methodEntry ( name, m ) =
   li
     []
-    [ text (fst p) ]
+    [ text (name ++ ": " ++ m.summary) ]
 
 
-pathList : Signal.Address Action -> List Path -> Html
-pathList address paths =
+methodList : Methods -> Html
+methodList ms =
+  ul [] (List.map methodEntry (Dict.toList ms))
+
+
+pathEntry : ( String, Methods ) -> Html
+pathEntry ( p, ms ) =
+  li
+    []
+    [ div
+        []
+        [ h4 [] [ text p ]
+        , methodList ms
+        ]
+    ]
+
+
+pathList : Paths -> Html
+pathList paths =
   div
     []
     [ h3 [] [ text "Paths" ]
-    , ul [] (List.map (pathEntry address) paths)
+    , ul [] (List.map pathEntry (Dict.toList paths))
     ]
 
 
@@ -122,15 +141,16 @@ getJsonSpec url =
 
 
 type alias Spec =
-  { info : Info, paths : List Path }
+  { info : Info, paths : Paths }
 
 
 type alias Info =
   { title : String, description : String, version : String }
 
 
-type alias Path =
-  ( String, List ( String, String ) )
+type alias Paths =
+  -- ( String, List ( String, String ) )
+  Dict String Methods
 
 
 type alias Parameter =
@@ -141,8 +161,16 @@ type alias Response =
   { description : String }
 
 
+type alias Methods =
+  Dict String Method
+
+
 type alias Method =
-  { summary : String, description : String, consumes : List String, produces : List String, parameters : List Parameter, responses : List ( String, Response ) }
+  { summary : String, description : String }
+
+
+
+-- parameters : List Parameter, responses : List ( String, Response ) }
 
 
 decodeParameter : Json.Decoder Parameter
@@ -168,28 +196,27 @@ decodeResponses =
 
 decodeMethod : Json.Decoder Method
 decodeMethod =
-  Json.object6
+  Json.object2
     Method
     ("summary" := Json.string)
     ("description" := Json.string)
-    ("consumes" := Json.list Json.string)
-    ("produces" := Json.list Json.string)
-    ("parameters" := Json.list decodeParameter)
-    decodeResponses
 
 
-decodePath : Json.Decoder (List ( String, String ))
-decodePath =
-  Json.keyValuePairs
-    ("summary" := Json.string)
+
+--("parameters" := Json.list decodeParameter)
+-- decodeResponses
 
 
-decodePaths : Json.Decoder (List ( String, List ( String, String ) ))
+decodeMethods : Json.Decoder Methods
+decodeMethods =
+  Json.dict decodeMethod
+
+
+decodePaths : Json.Decoder Paths
 decodePaths =
   Json.at
     [ "paths" ]
-    <| Json.keyValuePairs
-        decodePath
+    <| Json.dict decodeMethods
 
 
 decodeInfo : Json.Decoder Info
