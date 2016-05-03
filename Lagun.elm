@@ -153,7 +153,7 @@ pathEntry ( p, ms ) =
     []
     [ div
         []
-        [ h5 [] [ text p ]
+        [ h4 [] [ text p ]
         , methodList ms
         ]
     ]
