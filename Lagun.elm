@@ -9,6 +9,7 @@ import Json.Decode as Json exposing ((:=))
 import Task
 import Dict exposing (Dict)
 import String
+import Markdown
 
 
 -- MODEL
@@ -65,7 +66,8 @@ view address { specUrl, spec } =
         , div
             []
             [ h1 [] [ text spec.info.title ]
-            , p [] [ text spec.info.description ]
+            , Markdown.toHtml spec.info.description
+              -- p [] [ text spec.info.description ]
             , p [] [ text ("Version: " ++ spec.info.version) ]
             , hr [] []
             , pathList spec.paths
@@ -146,7 +148,6 @@ type alias Info =
 
 
 type alias Paths =
-  -- ( String, List ( String, String ) )
   Dict String Methods
 
 
