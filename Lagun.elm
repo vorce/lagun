@@ -65,8 +65,9 @@ view address { specUrl, spec } =
     Maybe.Just spec ->
       div
         [ class "container" ]
-        [ specUrlInput address specUrl
-        , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Lagun it!" ]
+        [ div
+            [ class "row" ]
+            (headerHtml address specUrl)
         , div
             []
             [ h1 [] [ text spec.info.title ]
@@ -81,14 +82,33 @@ view address { specUrl, spec } =
       div
         [ class "container" ]
         [ p [] [ text "No API specification found, or something went wrong while parsing it. U_U" ]
-        , specUrlInput address specUrl
-        , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Lagun it!" ]
+        , div
+            [ class "row" ]
+            (headerHtml address specUrl)
         ]
+
+
+headerHtml : Signal.Address Action -> String -> List Html
+headerHtml address specUrl =
+  [ div
+      [ class "column column-80" ]
+      [ specUrlInput address specUrl ]
+  , div
+      [ class "column column-20" ]
+      [ button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Lagun it!" ]
+      ]
+  ]
 
 
 specUrlInput : Signal.Address Action -> String -> Html
 specUrlInput address specUrl =
-  input [ type' "text", placeholder specUrl, value specUrl, on "input" targetValue (\newurl -> Signal.message address (FetchSpec (Just newurl))) ] []
+  input
+    [ type' "text"
+    , placeholder specUrl
+    , value specUrl
+    , on "input" targetValue (\newurl -> Signal.message address (FetchSpec (Just newurl)))
+    ]
+    []
 
 
 methodEntry : ( String, Method ) -> Html
@@ -166,10 +186,6 @@ type alias Method =
   { summary : String, description : String }
 
 
-
--- parameters : List Parameter, responses : List ( String, Response ) }
-
-
 decodeParameter : Json.Decoder Parameter
 decodeParameter =
   Json.object3
@@ -197,11 +213,6 @@ decodeMethod =
     Method
     ("summary" := Json.string)
     ("description" := Json.string)
-
-
-
---("parameters" := Json.list decodeParameter)
--- decodeResponses
 
 
 decodeMethods : Json.Decoder Methods
