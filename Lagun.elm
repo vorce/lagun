@@ -112,15 +112,39 @@ specUrlInput address specUrl =
 
 
 methodEntry : ( String, Method ) -> Html
-methodEntry ( name, m ) =
-  li
+methodEntry ( methodName, m ) =
+  dt
     []
-    [ text (name ++ ": " ++ m.summary) ]
+    [ div
+        [ class "row" ]
+        [ div
+            [ class ("column column-10 method-" ++ methodName) ]
+            [ text methodName ]
+        , div
+            [ class ("column column-90 method-summary-" ++ methodName) ]
+            [ text m.summary ]
+        ]
+    , div
+        [ class "row" ]
+        [ div
+            [ class ("column column-100 params-and-request method-summary-" ++ methodName) ]
+            [ div
+                []
+                [ h6 [] [ text "Parameters" ]
+                , p [] [ text "TODO" ]
+                ]
+            ]
+        ]
+    ]
+
+
+
+-- text (name ++ ": " ++ m.summary)
 
 
 methodList : Methods -> Html
 methodList ms =
-  ul [] (List.map methodEntry (Dict.toList ms))
+  dl [] (List.map methodEntry (Dict.toList ms))
 
 
 pathEntry : ( String, Methods ) -> Html
