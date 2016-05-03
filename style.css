@@ -1,5 +1,7 @@
 .method-post {
   background-color: rgba(148, 220, 148, 0.5);
+  text-transform: uppercase;
+  text-align: center;
 }
 
 .method-summary-post {
@@ -8,6 +10,8 @@
 
 .method-put {
   background-color: rgba(240, 220, 168, 0.5);
+  text-transform: uppercase;
+  text-align: center;
 }
 
 .method-summary-put {
@@ -16,6 +20,8 @@
 
 .method-get {
   background-color: rgba(148, 158, 220, 0.5);
+  text-transform: uppercase;
+  text-align: center;
 }
 
 .method-summary-get {
@@ -24,6 +30,8 @@
 
 .method-delete {
   background-color: rgba(220, 158, 148, 0.5);
+  text-transform: uppercase;
+  text-align: center;
 }
 
 .method-summary-delete {
