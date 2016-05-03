@@ -2,10 +2,10 @@ module Lagun (..) where
 
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (placeholder, value, class)
-import Html.Events exposing (onClick)
+import Html.Attributes exposing (placeholder, value, class, type')
+import Html.Events exposing (onClick, on, targetValue)
 import Http
-import Json.Decode as Json exposing ((:=))
+import Json.Decode as Json exposing ((:=), decodeString)
 import Task
 import Dict exposing (Dict)
 import String
@@ -38,9 +38,13 @@ update : Action -> Model -> ( Model, Effects Action )
 update action model =
   case action of
     FetchSpec maybeUrl ->
-      ( model
-      , getJsonSpec (Maybe.withDefault model.specUrl maybeUrl)
-      )
+      let
+        url =
+          (Maybe.withDefault model.specUrl maybeUrl)
+      in
+        ( Model url model.spec
+        , getJsonSpec url
+        )
 
     RenderSpec maybeSpec ->
       ( Model model.specUrl maybeSpec
@@ -61,13 +65,12 @@ view address { specUrl, spec } =
     Maybe.Just spec ->
       div
         [ class "container" ]
-        [ input [ placeholder specUrl, value specUrl ] []
+        [ specUrlInput address specUrl
         , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Fetch & Render spec" ]
         , div
             []
             [ h1 [] [ text spec.info.title ]
             , Markdown.toHtml spec.info.description
-              -- p [] [ text spec.info.description ]
             , p [] [ text ("Version: " ++ spec.info.version) ]
             , hr [] []
             , pathList spec.paths
@@ -78,9 +81,14 @@ view address { specUrl, spec } =
       div
         [ class "container" ]
         [ p [] [ text "No API specification found. Try fetching one!" ]
-        , input [ placeholder specUrl, value specUrl ] []
+        , specUrlInput address specUrl
         , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Fetch & Render spec" ]
         ]
+
+
+specUrlInput : Signal.Address Action -> String -> Html
+specUrlInput address specUrl =
+  input [ type' "text", placeholder specUrl, value specUrl, on "input" targetValue (\newurl -> Signal.message address (FetchSpec (Just newurl))) ] []
 
 
 methodEntry : ( String, Method ) -> Html
@@ -116,15 +124,6 @@ pathList paths =
 
 
 -- Effects
-
-
-debugOutput : a -> a
-debugOutput foo =
-  let
-    log =
-      Debug.log "Http error spec" foo
-  in
-    foo
 
 
 getJsonSpec : String -> Effects Action
