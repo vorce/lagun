@@ -66,7 +66,7 @@ view address { specUrl, spec } =
       div
         [ class "container" ]
         [ specUrlInput address specUrl
-        , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Fetch & Render spec" ]
+        , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Lagun it!" ]
         , div
             []
             [ h1 [] [ text spec.info.title ]
@@ -80,9 +80,9 @@ view address { specUrl, spec } =
     Maybe.Nothing ->
       div
         [ class "container" ]
-        [ p [] [ text "No API specification found. Try fetching one!" ]
+        [ p [] [ text "No API specification found, or something went wrong while parsing it. U_U" ]
         , specUrlInput address specUrl
-        , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Fetch & Render spec" ]
+        , button [ onClick address (FetchSpec (Maybe.Just specUrl)) ] [ text "Lagun it!" ]
         ]
 
 
