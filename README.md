@@ -4,9 +4,11 @@ An interactive web UI for Open API (2.0) specs. My first (toy) project in Elm!
 
 Uses [Milligram](https://milligram.github.io/).
 
+[Demo on Heroku](https://trylagun.herokuapp.com/) - Note that you may have to disable protection in your browser (I will look into this, but yeah.. certs)
+
 ## Build
 
-  elm-make Main.elm --output elm.js
+    elm-make Main.elm --output elm.js
 
 Open `index.html`
 
