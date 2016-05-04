@@ -10,7 +10,7 @@ Uses [Milligram](https://milligram.github.io/).
 
 ## Build
 
-    elm-make Main.elm --output elm.js
+    elm-make Main.elm --warn --output elm.js
 
 Open `index.html`
 

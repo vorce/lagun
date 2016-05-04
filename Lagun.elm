@@ -134,6 +134,7 @@ operationEntry ( opName, op ) =
                 , parametersTable op.parameters
                 , h6 [] [ text "Responses" ]
                 , responsesTable op.responses
+                , button [ class "button" ] [ text "Send request" ]
                 ]
             ]
         ]
