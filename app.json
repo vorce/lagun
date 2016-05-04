@@ -2,7 +2,7 @@
     "name": "Lagun",
     "repository": "https://github.com/vorce/lagun",
     "env": {
-        "ELM_COMPILE": "rm elm.js && elm-make Main.elm --output elm.js"
+        "ELM_COMPILE": "elm-make Main.elm --output elm.js"
     },
     "buildpacks": [
         {
