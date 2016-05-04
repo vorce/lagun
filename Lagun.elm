@@ -131,12 +131,65 @@ operationEntry ( opName, op ) =
             [ div
                 []
                 [ h6 [] [ text "Parameters" ]
-                , p [] [ text "TODO" ]
+                , parametersTable op.parameters
                 , h6 [] [ text "Responses" ]
                 , responsesTable op.responses
                 ]
             ]
         ]
+    ]
+
+
+parametersTable : List Parameter -> Html
+parametersTable ps =
+  table
+    []
+    [ thead
+        []
+        [ tr
+            []
+            [ th
+                []
+                [ text "Parameter" ]
+            , th
+                []
+                [ text "Value" ]
+            , th
+                []
+                [ text "Description" ]
+            , th
+                []
+                [ text "Parameter Type" ]
+            , th
+                []
+                [ text "Data Type" ]
+            ]
+        ]
+    , tbody
+        []
+        (List.map parameterEntry ps)
+    ]
+
+
+parameterEntry : Parameter -> Html
+parameterEntry param =
+  tr
+    []
+    [ td
+        []
+        [ text param.name ]
+    , td
+        []
+        [ input [ type' "text" ] [] ]
+    , td
+        []
+        [ text param.description ]
+    , td
+        []
+        [ text param.in' ]
+    , td
+        []
+        [ text "TODO: schema" ]
     ]
 
 
@@ -146,12 +199,12 @@ operationList ms =
 
 
 responseEntry : ( String, Response ) -> Html
-responseEntry ( code, r ) =
+responseEntry ( httpCode, r ) =
   tr
     []
     [ td
         []
-        [ text code ]
+        [ text httpCode ]
     , td
         []
         [ text r.description ]
@@ -241,7 +294,7 @@ type alias Paths =
 
 
 type alias Parameter =
-  { paramIn : String, name : String, description : String }
+  { in' : String, name : String, description : String }
 
 
 type alias Response =
@@ -253,7 +306,11 @@ type alias Operations =
 
 
 type alias Operation =
-  { summary : String, description : String, responses : Dict String Response }
+  { summary : String
+  , description : String
+  , parameters : List Parameter
+  , responses : Dict String Response
+  }
 
 
 decodeParameter : Json.Decoder Parameter
@@ -262,7 +319,7 @@ decodeParameter =
     Parameter
     ("in" := Json.string)
     ("name" := Json.string)
-    ("description" := Json.string)
+    (optionalField "description")
 
 
 decodeResponse : Json.Decoder Response
@@ -274,10 +331,11 @@ decodeResponse =
 
 decodeOperation : Json.Decoder Operation
 decodeOperation =
-  Json.object3
+  Json.object4
     Operation
     (optionalField "summary")
     (optionalField "description")
+    (Json.at [ "parameters" ] <| Json.oneOf [ Json.list decodeParameter, Json.succeed [] ])
     (Json.at [ "responses" ] <| Json.dict decodeResponse)
 
 
