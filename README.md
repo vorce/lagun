@@ -1,6 +1,6 @@
 # Lagun
 
-[![Heroku](http://heroku-badge.herokuapp.com/?app=trylagun&style=flat)]
+[![Heroku](http://heroku-badge.herokuapp.com/?app=trylagun&style=flat)](https://trylagun.herokuapp.com/)
 
 An interactive web UI for Open API (2.0) specs. My first (toy) project in Elm!
 
