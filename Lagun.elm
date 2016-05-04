@@ -111,50 +111,96 @@ specUrlInput address specUrl =
     []
 
 
-methodEntry : ( String, Method ) -> Html
-methodEntry ( methodName, m ) =
+operationEntry : ( String, Operation ) -> Html
+operationEntry ( opName, op ) =
   dt
     []
     [ div
         [ class "row" ]
         [ div
-            [ class ("column column-10 method-" ++ methodName) ]
-            [ text methodName ]
+            [ class ("column column-10 method-" ++ opName) ]
+            [ text opName ]
         , div
-            [ class ("column column-90 method-summary-" ++ methodName) ]
-            [ text m.summary ]
+            [ class ("column column-90 method-summary-" ++ opName) ]
+            [ text op.summary ]
         ]
     , div
         [ class "row" ]
         [ div
-            [ class ("column column-100 params-and-request method-summary-" ++ methodName) ]
+            [ class ("column column-100 params-and-request method-summary-" ++ opName) ]
             [ div
                 []
                 [ h6 [] [ text "Parameters" ]
                 , p [] [ text "TODO" ]
+                , h6 [] [ text "Responses" ]
+                , responsesTable op.responses
                 ]
             ]
         ]
     ]
 
 
-
--- text (name ++ ": " ++ m.summary)
-
-
-methodList : Methods -> Html
-methodList ms =
-  dl [] (List.map methodEntry (Dict.toList ms))
+operationList : Operations -> Html
+operationList ms =
+  dl [] (List.map operationEntry (Dict.toList ms))
 
 
-pathEntry : ( String, Methods ) -> Html
+responseEntry : ( String, Response ) -> Html
+responseEntry ( code, r ) =
+  tr
+    []
+    [ td
+        []
+        [ text code ]
+    , td
+        []
+        [ text r.description ]
+      -- Markdown.toHtml
+    , td
+        []
+        [ text "TODO: Response model" ]
+    , td
+        []
+        [ text "TODO: Headers" ]
+    ]
+
+
+responsesTable : Dict String Response -> Html
+responsesTable rs =
+  table
+    []
+    [ thead
+        []
+        [ tr
+            []
+            [ th
+                []
+                [ text "HTTP Code" ]
+            , th
+                []
+                [ text "Reason" ]
+            , th
+                []
+                [ text "Response model" ]
+            , th
+                []
+                [ text "Headers" ]
+            ]
+        ]
+    , tbody
+        []
+        (List.map responseEntry (Dict.toList rs))
+    ]
+
+
+pathEntry : ( String, Operations ) -> Html
 pathEntry ( p, ms ) =
   dt
     []
     [ div
         []
         [ h4 [] [ text p ]
-        , methodList ms
+        , operationList ms
         ]
     ]
 
@@ -183,7 +229,7 @@ getJsonSpec url =
 
 
 type alias Spec =
-  { info : Info, paths : Paths }
+  { info : Info, paths : Paths, swagger : String }
 
 
 type alias Info =
@@ -191,7 +237,7 @@ type alias Info =
 
 
 type alias Paths =
-  Dict String Methods
+  Dict String Operations
 
 
 type alias Parameter =
@@ -202,12 +248,12 @@ type alias Response =
   { description : String }
 
 
-type alias Methods =
-  Dict String Method
+type alias Operations =
+  Dict String Operation
 
 
-type alias Method =
-  { summary : String, description : String }
+type alias Operation =
+  { summary : String, description : String, responses : Dict String Response }
 
 
 decodeParameter : Json.Decoder Parameter
@@ -226,29 +272,25 @@ decodeResponse =
     ("description" := Json.string)
 
 
-decodeResponses : Json.Decoder (List ( String, Response ))
-decodeResponses =
-  Json.keyValuePairs decodeResponse
+decodeOperation : Json.Decoder Operation
+decodeOperation =
+  Json.object3
+    Operation
+    (optionalField "summary")
+    (optionalField "description")
+    (Json.at [ "responses" ] <| Json.dict decodeResponse)
 
 
-decodeMethod : Json.Decoder Method
-decodeMethod =
-  Json.object2
-    Method
-    ("summary" := Json.string)
-    ("description" := Json.string)
-
-
-decodeMethods : Json.Decoder Methods
-decodeMethods =
-  Json.dict decodeMethod
+decodeOperations : Json.Decoder Operations
+decodeOperations =
+  Json.dict decodeOperation
 
 
 decodePaths : Json.Decoder Paths
 decodePaths =
   Json.at
     [ "paths" ]
-    <| Json.dict decodeMethods
+    <| Json.dict decodeOperations
 
 
 decodeInfo : Json.Decoder Info
@@ -258,16 +300,22 @@ decodeInfo =
     <| Json.object3
         Info
         ("title" := Json.string)
-        ("description" := Json.string)
+        (optionalField "description")
         ("version" := Json.string)
+
+
+optionalField : String -> Json.Decoder String
+optionalField field =
+  Json.oneOf [ field := Json.string, Json.succeed "" ]
 
 
 decodeSpec : Json.Decoder Spec
 decodeSpec =
-  Json.object2
+  Json.object3
     Spec
     decodeInfo
     decodePaths
+    ("swagger" := Json.string)
 
 
 
