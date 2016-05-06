@@ -78,7 +78,7 @@ view address { specUrl, spec, expanded } =
             []
             [ h1 [] [ text spec.info.title ]
             , Markdown.toHtml spec.info.description
-            , p [] [ text ("Version: " ++ spec.info.version) ]
+            , p [] [ text ("API Version: " ++ spec.info.version) ]
             , hr [] []
             , pathList address spec.paths expanded
             ]
