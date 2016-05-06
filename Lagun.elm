@@ -2,26 +2,26 @@ module Lagun (..) where
 
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (placeholder, value, class, type')
+import Html.Attributes exposing (placeholder, value, class, type', src, alt, href, name)
 import Html.Events exposing (onClick, on, targetValue)
 import Http
 import Json.Decode as Json exposing ((:=), decodeString)
 import Task
 import Dict exposing (Dict)
-import String
 import Markdown
+import Set exposing (Set)
 
 
 -- MODEL
 
 
 type alias Model =
-  { specUrl : String, spec : Maybe Spec }
+  { specUrl : String, spec : Maybe Spec, expanded : Set String }
 
 
 init : String -> ( Model, Effects Action )
 init url =
-  ( Model url Maybe.Nothing, getJsonSpec url )
+  ( Model url Maybe.Nothing Set.empty, getJsonSpec url )
 
 
 
@@ -32,6 +32,7 @@ type Action
   = FetchSpec (Maybe String)
   | RenderSpec (Maybe Spec)
   | TryRequest
+  | ExpansionToggled (Set String)
 
 
 update : Action -> Model -> ( Model, Effects Action )
@@ -42,12 +43,17 @@ update action model =
         url =
           (Maybe.withDefault model.specUrl maybeUrl)
       in
-        ( Model url model.spec
+        ( Model url model.spec model.expanded
         , getJsonSpec url
         )
 
     RenderSpec maybeSpec ->
-      ( Model model.specUrl maybeSpec
+      ( Model model.specUrl maybeSpec model.expanded
+      , Effects.none
+      )
+
+    ExpansionToggled expanded ->
+      ( Model model.specUrl model.spec expanded
       , Effects.none
       )
 
@@ -60,7 +66,7 @@ update action model =
 
 
 view : Signal.Address Action -> Model -> Html
-view address { specUrl, spec } =
+view address { specUrl, spec, expanded } =
   case spec of
     Maybe.Just spec ->
       div
@@ -74,7 +80,7 @@ view address { specUrl, spec } =
             , Markdown.toHtml spec.info.description
             , p [] [ text ("Version: " ++ spec.info.version) ]
             , hr [] []
-            , pathList spec.paths
+            , pathList address spec.paths expanded
             ]
         ]
 
@@ -195,8 +201,8 @@ parameterEntry param =
 
 
 operationList : Operations -> Html
-operationList ms =
-  dl [] (List.map operationEntry (Dict.toList ms))
+operationList ops =
+  dl [] (List.map operationEntry (Dict.toList ops))
 
 
 responseEntry : ( String, Response ) -> Html
@@ -247,23 +253,53 @@ responsesTable rs =
     ]
 
 
-pathEntry : ( String, Operations ) -> Html
-pathEntry ( p, ms ) =
+renderPath : Signal.Address Action -> Set String -> ( String, Operations ) -> Html
+renderPath address expanded ( pathName, ops ) =
+  case (Set.member pathName expanded) of
+    False ->
+      div
+        []
+        [ h5
+            [ onClick address (ExpansionToggled (Set.insert pathName expanded)) ]
+            [ a
+                [ href ("#" ++ pathName), name pathName ]
+                [ fontAwesome "plus-square-o" ]
+            , text (" " ++ pathName)
+            ]
+        ]
+
+    True ->
+      div
+        []
+        [ h5
+            [ onClick address (ExpansionToggled (Set.remove pathName expanded)) ]
+            [ a
+                [ href ("#" ++ pathName), name pathName ]
+                [ fontAwesome "minus-square-o" ]
+            , text (" " ++ pathName)
+            ]
+        , operationList ops
+        ]
+
+
+pathEntry : Signal.Address Action -> Set String -> ( String, Operations ) -> Html
+pathEntry address expanded ( p, ops ) =
   dt
     []
-    [ div
-        []
-        [ h4 [] [ text p ]
-        , operationList ms
-        ]
+    [ (renderPath address expanded ( p, ops ))
     ]
 
 
-pathList : Paths -> Html
-pathList paths =
+pathList : Signal.Address Action -> Paths -> Set String -> Html
+pathList address paths expanded =
   div
     []
-    [ dl [] (List.map pathEntry (Dict.toList paths)) ]
+    [ dl [] (List.map (pathEntry address expanded) (Dict.toList paths)) ]
+
+
+fontAwesome : String -> Html
+fontAwesome name =
+  span [ class ("fa fa-" ++ name) ] []
 
 
 
