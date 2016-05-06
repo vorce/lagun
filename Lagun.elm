@@ -260,9 +260,12 @@ renderPath address expanded ( pathName, ops ) =
       div
         []
         [ h5
-            [ onClick address (ExpansionToggled (Set.insert pathName expanded)) ]
+            []
             [ a
-                [ href ("#" ++ pathName), name pathName ]
+                [ onClick address (ExpansionToggled (Set.insert pathName expanded))
+                , href ("#" ++ pathName)
+                , name pathName
+                ]
                 [ fontAwesome "plus-square-o" ]
             , text (" " ++ pathName)
             ]
@@ -272,9 +275,12 @@ renderPath address expanded ( pathName, ops ) =
       div
         []
         [ h5
-            [ onClick address (ExpansionToggled (Set.remove pathName expanded)) ]
+            []
             [ a
-                [ href ("#" ++ pathName), name pathName ]
+                [ onClick address (ExpansionToggled (Set.remove pathName expanded))
+                , href ("#" ++ pathName)
+                , name pathName
+                ]
                 [ fontAwesome "minus-square-o" ]
             , text (" " ++ pathName)
             ]
