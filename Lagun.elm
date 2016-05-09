@@ -31,8 +31,9 @@ init url =
 type Action
   = FetchSpec (Maybe String)
   | RenderSpec (Maybe Spec)
-  | TryRequest
+  | TryRequest Http.Request
   | ExpansionToggled (Set String)
+  | RequestResult (Result Http.RawError Http.Response)
 
 
 update : Action -> Model -> ( Model, Effects Action )
@@ -57,7 +58,10 @@ update action model =
       , Effects.none
       )
 
-    TryRequest ->
+    TryRequest request ->
+      ( model, tryRequest request )
+
+    RequestResult result ->
       ( model, Effects.none )
 
 
@@ -149,9 +153,13 @@ operationEntry address path' ( opName, op ) =
 
 requestButton : Signal.Address Action -> String -> String -> List ( Parameter, String ) -> Html
 requestButton address opName path' params =
-  button
-    [ class "button", onClick address TryRequest ]
-    [ text "Send request" ]
+  let
+    req =
+      { verb = opName, headers = [], url = "", body = Http.empty }
+  in
+    button
+      [ class "button", onClick address (TryRequest req) ]
+      [ text "Send request" ]
 
 
 parametersTable : List Parameter -> Html
@@ -317,6 +325,18 @@ fontAwesome name =
 
 
 -- Effects
+
+
+tryRequest : Http.Request -> Effects Action
+tryRequest req =
+  let
+    settings =
+      Http.defaultSettings
+  in
+    Http.send settings req
+      |> Task.toResult
+      |> Task.map RequestResult
+      |> Effects.task
 
 
 getJsonSpec : String -> Effects Action
