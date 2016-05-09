@@ -117,8 +117,8 @@ specUrlInput address specUrl =
     []
 
 
-operationEntry : ( String, Operation ) -> Html
-operationEntry ( opName, op ) =
+operationEntry : Signal.Address Action -> String -> ( String, Operation ) -> Html
+operationEntry address path' ( opName, op ) =
   dt
     []
     [ div
@@ -140,11 +140,18 @@ operationEntry ( opName, op ) =
                 , parametersTable op.parameters
                 , h6 [] [ text "Responses" ]
                 , responsesTable op.responses
-                , button [ class "button" ] [ text "Send request" ]
+                , requestButton address opName path' []
                 ]
             ]
         ]
     ]
+
+
+requestButton : Signal.Address Action -> String -> String -> List ( Parameter, String ) -> Html
+requestButton address opName path' params =
+  button
+    [ class "button", onClick address TryRequest ]
+    [ text "Send request" ]
 
 
 parametersTable : List Parameter -> Html
@@ -200,9 +207,9 @@ parameterEntry param =
     ]
 
 
-operationList : Operations -> Html
-operationList ops =
-  dl [] (List.map operationEntry (Dict.toList ops))
+operationList : Signal.Address Action -> String -> Operations -> Html
+operationList address path' ops =
+  dl [] (List.map (operationEntry address path') (Dict.toList ops))
 
 
 responseEntry : ( String, Response ) -> Html
@@ -284,7 +291,7 @@ renderPath address expanded ( pathName, ops ) =
                 [ fontAwesome "minus-square-o" ]
             , text (" " ++ pathName)
             ]
-        , operationList ops
+        , operationList address pathName ops
         ]
 
 
@@ -325,7 +332,7 @@ getJsonSpec url =
 
 
 type alias Spec =
-  { info : Info, paths : Paths, swagger : String }
+  { info : Info, paths : Paths, swagger : String, host : String }
 
 
 type alias Info =
@@ -412,11 +419,12 @@ optionalField field =
 
 decodeSpec : Json.Decoder Spec
 decodeSpec =
-  Json.object3
+  Json.object4
     Spec
     decodeInfo
     decodePaths
     ("swagger" := Json.string)
+    (optionalField "host")
 
 
 
