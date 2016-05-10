@@ -1,7 +1,8 @@
 module Main (..) where
 
 import Effects exposing (Never)
-import Lagun exposing (init, update, view)
+import Lagun exposing (init, update)
+import View exposing (view)
 import Html
 import StartApp
 import Task
