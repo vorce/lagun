@@ -5,7 +5,7 @@ import Html.Attributes exposing (placeholder, value, class, type', src, alt, hre
 import Html.Events exposing (onClick, on, targetValue)
 import Markdown
 import Regex
-import Lagun exposing (Action, Model, Parameter, Operations, Paths, Response, Operation)
+import Lagun exposing (Action, Model, Parameter, ParameterKey, ParameterValues, Operations, Paths, Response, Operation)
 import Dict exposing (Dict)
 import Set exposing (Set)
 import Http
@@ -63,7 +63,7 @@ specUrlInput address specUrl =
     []
 
 
-operationEntry : Signal.Address Action -> Lagun.ParameterValues -> String -> ( String, Operation ) -> Html
+operationEntry : Signal.Address Action -> ParameterValues -> String -> ( String, Operation ) -> Html
 operationEntry address paramValues path' ( opName, op ) =
   dt
     []
@@ -102,7 +102,7 @@ pathWithVariables path' variables =
     Regex.replace Regex.All re (\{ match } -> (Maybe.withDefault "" (Dict.get match variables))) path'
 
 
-requestBuilder : String -> String -> Lagun.ParameterValues -> Http.Request
+requestBuilder : String -> String -> ParameterValues -> Http.Request
 requestBuilder verb path' paramValues =
   let
     relevantParamValues =
@@ -129,7 +129,7 @@ requestButton address req =
     [ text "Send request" ]
 
 
-parametersTableBody : Signal.Address Action -> Lagun.ParameterValues -> String -> String -> List Parameter -> Html
+parametersTableBody : Signal.Address Action -> ParameterValues -> String -> String -> List Parameter -> Html
 parametersTableBody address paramValues path' opName ps =
   tbody
     []
@@ -165,7 +165,7 @@ parametersTable tableBody =
     ]
 
 
-parameterEntryInput : Signal.Address Action -> Lagun.ParameterValues -> Lagun.ParameterKey -> Html
+parameterEntryInput : Signal.Address Action -> ParameterValues -> ParameterKey -> Html
 parameterEntryInput address currentValues paramKey =
   input
     [ type' "text"
@@ -178,7 +178,7 @@ parameterEntryInput address currentValues paramKey =
     []
 
 
-parameterEntry : Signal.Address Action -> Lagun.ParameterValues -> String -> String -> Parameter -> Html
+parameterEntry : Signal.Address Action -> ParameterValues -> String -> String -> Parameter -> Html
 parameterEntry address currentValues path' opName param =
   tr
     []
@@ -201,12 +201,12 @@ parameterEntry address currentValues path' opName param =
     ]
 
 
-parameterKey : String -> String -> Parameter -> Lagun.ParameterKey
+parameterKey : String -> String -> Parameter -> ParameterKey
 parameterKey path' opName param =
   ( path', opName, param.in', param.name )
 
 
-operationList : Signal.Address Action -> Lagun.ParameterValues -> String -> Operations -> Html
+operationList : Signal.Address Action -> ParameterValues -> String -> Operations -> Html
 operationList address paramValues path' ops =
   dl [] (List.map (operationEntry address paramValues path') (Dict.toList ops))
 
@@ -259,7 +259,7 @@ responsesTable rs =
     ]
 
 
-renderPath : Signal.Address Action -> Lagun.ParameterValues -> Set String -> ( String, Operations ) -> Html
+renderPath : Signal.Address Action -> ParameterValues -> Set String -> ( String, Operations ) -> Html
 renderPath address paramValues expanded ( pathName, ops ) =
   case (Set.member pathName expanded) of
     False ->
@@ -294,7 +294,7 @@ renderPath address paramValues expanded ( pathName, ops ) =
         ]
 
 
-pathEntry : Signal.Address Action -> Lagun.ParameterValues -> Set String -> ( String, Operations ) -> Html
+pathEntry : Signal.Address Action -> ParameterValues -> Set String -> ( String, Operations ) -> Html
 pathEntry address paramValues expanded ( p, ops ) =
   dt
     []
@@ -302,7 +302,7 @@ pathEntry address paramValues expanded ( p, ops ) =
     ]
 
 
-pathList : Signal.Address Action -> Lagun.ParameterValues -> Paths -> Set String -> Html
+pathList : Signal.Address Action -> ParameterValues -> Paths -> Set String -> Html
 pathList address paramValues paths expanded =
   div
     []
