@@ -10,6 +10,7 @@ import Task
 import Dict exposing (Dict)
 import Markdown
 import Set exposing (Set)
+import Regex
 
 
 -- MODEL
@@ -147,7 +148,7 @@ operationEntry address paramValues path' ( opName, op ) =
             [ div
                 []
                 [ h6 [] [ text "Parameters" ]
-                , parametersTable (parametersTableBody address paramValues path' op.parameters)
+                , parametersTable (parametersTableBody address paramValues path' opName op.parameters)
                 , h6 [] [ text "Responses" ]
                 , responsesTable op.responses
                 , requestButton address (requestBuilder opName path' paramValues)
@@ -157,18 +158,33 @@ operationEntry address paramValues path' ( opName, op ) =
     ]
 
 
-parameterKey : String -> Parameter -> String
-parameterKey path' param =
-  path' ++ param.in' ++ param.name
+pathWithVariables : String -> Dict String String -> String
+pathWithVariables path' variables =
+  let
+    re =
+      Regex.regex "\\{(.*?)\\}"
+  in
+    Regex.replace Regex.All re (\{ match } -> (Maybe.withDefault "" (Dict.get match variables))) path'
 
 
 requestBuilder : String -> String -> ParameterValues -> Http.Request
 requestBuilder verb path' paramValues =
-  { verb = verb
-  , headers = []
-  , url = ("http://petstore.swagger.io" ++ path')
-  , body = Http.empty
-  }
+  let
+    relevantParamValues =
+      Dict.filter (\( p, v, in', n ) val -> p == path' && v == verb && in' == "path") paramValues
+
+    relevantPathParams =
+      -- yay :(
+      Dict.filter (\( p, v, in', n ) val -> in' == "path") relevantParamValues
+        |> Dict.toList
+        |> List.map (\( ( p, v, in', name ), val ) -> ( "{" ++ name ++ "}", val ))
+        |> Dict.fromList
+  in
+    { verb = verb
+    , headers = []
+    , url = ("http://petstore.swagger.io" ++ (pathWithVariables path' relevantPathParams))
+    , body = Http.empty
+    }
 
 
 requestButton : Signal.Address Action -> Http.Request -> Html
@@ -178,11 +194,11 @@ requestButton address req =
     [ text "Send request" ]
 
 
-parametersTableBody : Signal.Address Action -> ParameterValues -> String -> List Parameter -> Html
-parametersTableBody address paramValues path' ps =
+parametersTableBody : Signal.Address Action -> ParameterValues -> String -> String -> List Parameter -> Html
+parametersTableBody address paramValues path' opName ps =
   tbody
     []
-    (List.map (parameterEntry address paramValues path') ps)
+    (List.map (parameterEntry address paramValues path' opName) ps)
 
 
 parametersTable : Html -> Html
@@ -214,18 +230,21 @@ parametersTable tableBody =
     ]
 
 
-parameterEntryInput : Signal.Address Action -> ParameterValues -> String -> Html
+parameterEntryInput : Signal.Address Action -> ParameterValues -> ParameterKey -> Html
 parameterEntryInput address currentValues paramKey =
   input
     [ type' "text"
     , value (Maybe.withDefault "" (Dict.get paramKey currentValues))
-    , on "input" targetValue (\val -> Signal.message address (ParameterInput (Dict.insert paramKey val currentValues)))
+    , on
+        "input"
+        targetValue
+        (\val -> Signal.message address (ParameterInput (Dict.insert paramKey val currentValues)))
     ]
     []
 
 
-parameterEntry : Signal.Address Action -> ParameterValues -> String -> Parameter -> Html
-parameterEntry address currentValues path' param =
+parameterEntry : Signal.Address Action -> ParameterValues -> String -> String -> Parameter -> Html
+parameterEntry address currentValues path' opName param =
   tr
     []
     [ td
@@ -233,7 +252,7 @@ parameterEntry address currentValues path' param =
         [ text param.name ]
     , td
         []
-        [ parameterEntryInput address currentValues (parameterKey path' param)
+        [ parameterEntryInput address currentValues (parameterKey path' opName param)
         ]
     , td
         []
@@ -245,6 +264,11 @@ parameterEntry address currentValues path' param =
         []
         [ text "TODO: schema" ]
     ]
+
+
+parameterKey : String -> String -> Parameter -> ParameterKey
+parameterKey path' opName param =
+  ( path', opName, param.in', param.name )
 
 
 operationList : Signal.Address Action -> ParameterValues -> String -> Operations -> Html
@@ -383,8 +407,12 @@ getJsonSpec url =
 -- JSON decoders
 
 
+type alias ParameterKey =
+  ( String, String, String, String )
+
+
 type alias ParameterValues =
-  Dict String String
+  Dict ParameterKey String
 
 
 type alias Spec =
