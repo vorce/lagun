@@ -16,12 +16,12 @@ import Set exposing (Set)
 
 
 type alias Model =
-  { specUrl : String, spec : Maybe Spec, expanded : Set String }
+  { specUrl : String, spec : Maybe Spec, expanded : Set String, paramValues : ParameterValues }
 
 
 init : String -> ( Model, Effects Action )
 init url =
-  ( Model url Maybe.Nothing Set.empty, getJsonSpec url )
+  ( Model url Maybe.Nothing Set.empty Dict.empty, getJsonSpec url )
 
 
 
@@ -34,6 +34,7 @@ type Action
   | TryRequest Http.Request
   | ExpansionToggled (Set String)
   | RequestResult (Result Http.RawError Http.Response)
+  | ParameterInput ParameterValues
 
 
 update : Action -> Model -> ( Model, Effects Action )
@@ -44,17 +45,17 @@ update action model =
         url =
           (Maybe.withDefault model.specUrl maybeUrl)
       in
-        ( Model url model.spec model.expanded
+        ( Model url model.spec model.expanded model.paramValues
         , getJsonSpec url
         )
 
     RenderSpec maybeSpec ->
-      ( Model model.specUrl maybeSpec model.expanded
+      ( Model model.specUrl maybeSpec model.expanded model.paramValues
       , Effects.none
       )
 
     ExpansionToggled expanded ->
-      ( Model model.specUrl model.spec expanded
+      ( Model model.specUrl model.spec expanded model.paramValues
       , Effects.none
       )
 
@@ -64,13 +65,18 @@ update action model =
     RequestResult result ->
       ( model, Effects.none )
 
+    ParameterInput paramValues ->
+      ( Model model.specUrl model.spec model.expanded paramValues
+      , Effects.none
+      )
+
 
 
 -- VIEW
 
 
 view : Signal.Address Action -> Model -> Html
-view address { specUrl, spec, expanded } =
+view address { specUrl, spec, expanded, paramValues } =
   case spec of
     Maybe.Just spec ->
       div
@@ -84,7 +90,7 @@ view address { specUrl, spec, expanded } =
             , Markdown.toHtml spec.info.description
             , p [] [ text ("API Version: " ++ spec.info.version) ]
             , hr [] []
-            , pathList address spec.paths expanded
+            , pathList address paramValues spec.paths expanded
             ]
         ]
 
@@ -121,8 +127,8 @@ specUrlInput address specUrl =
     []
 
 
-operationEntry : Signal.Address Action -> String -> ( String, Operation ) -> Html
-operationEntry address path' ( opName, op ) =
+operationEntry : Signal.Address Action -> ParameterValues -> String -> ( String, Operation ) -> Html
+operationEntry address paramValues path' ( opName, op ) =
   dt
     []
     [ div
@@ -141,29 +147,46 @@ operationEntry address path' ( opName, op ) =
             [ div
                 []
                 [ h6 [] [ text "Parameters" ]
-                , parametersTable op.parameters
+                , parametersTable (parametersTableBody address paramValues path' op.parameters)
                 , h6 [] [ text "Responses" ]
                 , responsesTable op.responses
-                , requestButton address opName path' []
+                , requestButton address (requestBuilder opName path' paramValues)
                 ]
             ]
         ]
     ]
 
 
-requestButton : Signal.Address Action -> String -> String -> List ( Parameter, String ) -> Html
-requestButton address opName path' params =
-  let
-    req =
-      { verb = opName, headers = [], url = "", body = Http.empty }
-  in
-    button
-      [ class "button", onClick address (TryRequest req) ]
-      [ text "Send request" ]
+parameterKey : String -> Parameter -> String
+parameterKey path' param =
+  path' ++ param.name
 
 
-parametersTable : List Parameter -> Html
-parametersTable ps =
+requestBuilder : String -> String -> ParameterValues -> Http.Request
+requestBuilder verb path' paramValues =
+  { verb = verb
+  , headers = []
+  , url = ("http://petstore.swagger.io" ++ path')
+  , body = Http.empty
+  }
+
+
+requestButton : Signal.Address Action -> Http.Request -> Html
+requestButton address req =
+  button
+    [ class "button", onClick address (TryRequest req) ]
+    [ text "Send request" ]
+
+
+parametersTableBody : Signal.Address Action -> ParameterValues -> String -> List Parameter -> Html
+parametersTableBody address paramValues path' ps =
+  tbody
+    []
+    (List.map (parameterEntry address paramValues path') ps)
+
+
+parametersTable : Html -> Html
+parametersTable tableBody =
   table
     []
     [ thead
@@ -187,14 +210,22 @@ parametersTable ps =
                 [ text "Data Type" ]
             ]
         ]
-    , tbody
-        []
-        (List.map parameterEntry ps)
+    , tableBody
     ]
 
 
-parameterEntry : Parameter -> Html
-parameterEntry param =
+parameterEntryInput : Signal.Address Action -> ParameterValues -> String -> Html
+parameterEntryInput address currentValues paramKey =
+  input
+    [ type' "text"
+    , value (Maybe.withDefault "" (Dict.get paramKey currentValues))
+    , on "input" targetValue (\val -> Signal.message address (ParameterInput (Dict.insert paramKey val currentValues)))
+    ]
+    []
+
+
+parameterEntry : Signal.Address Action -> ParameterValues -> String -> Parameter -> Html
+parameterEntry address currentValues path' param =
   tr
     []
     [ td
@@ -202,7 +233,8 @@ parameterEntry param =
         [ text param.name ]
     , td
         []
-        [ input [ type' "text" ] [] ]
+        [ parameterEntryInput address currentValues (parameterKey path' param)
+        ]
     , td
         []
         [ text param.description ]
@@ -215,9 +247,9 @@ parameterEntry param =
     ]
 
 
-operationList : Signal.Address Action -> String -> Operations -> Html
-operationList address path' ops =
-  dl [] (List.map (operationEntry address path') (Dict.toList ops))
+operationList : Signal.Address Action -> ParameterValues -> String -> Operations -> Html
+operationList address paramValues path' ops =
+  dl [] (List.map (operationEntry address paramValues path') (Dict.toList ops))
 
 
 responseEntry : ( String, Response ) -> Html
@@ -268,8 +300,8 @@ responsesTable rs =
     ]
 
 
-renderPath : Signal.Address Action -> Set String -> ( String, Operations ) -> Html
-renderPath address expanded ( pathName, ops ) =
+renderPath : Signal.Address Action -> ParameterValues -> Set String -> ( String, Operations ) -> Html
+renderPath address paramValues expanded ( pathName, ops ) =
   case (Set.member pathName expanded) of
     False ->
       div
@@ -299,23 +331,23 @@ renderPath address expanded ( pathName, ops ) =
                 [ fontAwesome "minus-square-o" ]
             , text (" " ++ pathName)
             ]
-        , operationList address pathName ops
+        , operationList address paramValues pathName ops
         ]
 
 
-pathEntry : Signal.Address Action -> Set String -> ( String, Operations ) -> Html
-pathEntry address expanded ( p, ops ) =
+pathEntry : Signal.Address Action -> ParameterValues -> Set String -> ( String, Operations ) -> Html
+pathEntry address paramValues expanded ( p, ops ) =
   dt
     []
-    [ (renderPath address expanded ( p, ops ))
+    [ (renderPath address paramValues expanded ( p, ops ))
     ]
 
 
-pathList : Signal.Address Action -> Paths -> Set String -> Html
-pathList address paths expanded =
+pathList : Signal.Address Action -> ParameterValues -> Paths -> Set String -> Html
+pathList address paramValues paths expanded =
   div
     []
-    [ dl [] (List.map (pathEntry address expanded) (Dict.toList paths)) ]
+    [ dl [] (List.map (pathEntry address paramValues expanded) (Dict.toList paths)) ]
 
 
 fontAwesome : String -> Html
@@ -349,6 +381,10 @@ getJsonSpec url =
 
 
 -- JSON decoders
+
+
+type alias ParameterValues =
+  Dict String String
 
 
 type alias Spec =
