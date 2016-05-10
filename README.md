@@ -25,6 +25,6 @@ I doubt I will add support for other specs (such as RAML). PRs welcome ;)
 
 ## TODO / Explore
 
-- Add possibility to try out requests. Buttons! Not very interactive without this. :zap:
-- Complete json parsing into model. Move that code into its own file.
+- Show responses from requests :)
+- Add support for remaining parameter types: body, query
 - Some tests would be fun and useful
