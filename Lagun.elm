@@ -159,7 +159,7 @@ operationEntry address paramValues path' ( opName, op ) =
 
 parameterKey : String -> Parameter -> String
 parameterKey path' param =
-  path' ++ param.name
+  path' ++ param.in' ++ param.name
 
 
 requestBuilder : String -> String -> ParameterValues -> Http.Request
