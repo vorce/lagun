@@ -1,28 +1,14 @@
-module Main (..) where
+module Main exposing (..)
 
-import Effects exposing (Never)
-import Lagun exposing (init, update, Model)
+import Lagun exposing (init, update)
 import View exposing (view)
-import Html
-import StartApp
-import Task
+import Html.App as Html
 
 
-app : StartApp.App Model
-app =
-  StartApp.start
-    { init = init "http://petstore.swagger.io/v2/swagger.json"
-    , update = update
-    , view = view
-    , inputs = []
-    }
-
-
-main : Signal Html.Html
+main : Program Never
 main =
-  app.html
-
-
-port tasks : Signal (Task.Task Never ())
-port tasks =
-  app.tasks
+  Html.program
+  { init = init "http://petstore.swagger.io/v2/swagger.json",
+  update = update,
+  view = view,
+  subscriptions = \_ -> Sub.none }

@@ -1,6 +1,5 @@
-module Lagun (..) where
+module Lagun exposing (..)
 
-import Effects exposing (Effects, Never)
 import Http
 import Json.Decode as Json exposing ((:=), decodeString)
 import Task
@@ -11,11 +10,11 @@ import Set exposing (Set)
 -- MODEL
 
 
-type alias Model =
+type alias Model = -- TODO model spec as Result spec instead?
   { specUrl : String, spec : Maybe Spec, expanded : Set String, paramValues : ParameterValues }
 
 
-init : String -> ( Model, Effects Action )
+init : String -> ( Model, Cmd Msg )
 init url =
   ( Model url Maybe.Nothing Set.empty Dict.empty, getJsonSpec url )
 
@@ -24,16 +23,18 @@ init url =
 -- UPDATE
 
 
-type Action
+type Msg
   = FetchSpec (Maybe String)
-  | RenderSpec (Maybe Spec)
+  | FetchSpecFail Http.Error
+  | FetchSpecOk Spec
   | TryRequest Http.Request
   | ExpansionToggled (Set String)
-  | RequestResult (Result Http.RawError Http.Response)
+  | RequestFail Http.RawError
+  | RequestResult Http.Response
   | ParameterInput ParameterValues
 
 
-update : Action -> Model -> ( Model, Effects Action )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update action model =
   case action of
     FetchSpec maybeUrl ->
@@ -45,51 +46,56 @@ update action model =
         , getJsonSpec url
         )
 
-    RenderSpec maybeSpec ->
-      ( Model model.specUrl maybeSpec model.expanded model.paramValues
-      , Effects.none
+    FetchSpecOk spec ->
+      ( Model model.specUrl (Maybe.Just spec) model.expanded model.paramValues
+      , Cmd.none
       )
+
+    FetchSpecFail errorMsg ->
+      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues
+      , Cmd.none) -- TODO: Actually show the error message
 
     ExpansionToggled expanded ->
       ( Model model.specUrl model.spec expanded model.paramValues
-      , Effects.none
+      , Cmd.none
       )
 
     TryRequest request ->
       ( model, tryRequest request )
 
     RequestResult result ->
-      ( model, Effects.none )
+      ( model, Cmd.none )
+
+    RequestFail errorMsg ->
+      (model, Cmd.none) -- TODO Actually show the error message
 
     ParameterInput paramValues ->
       ( Model model.specUrl model.spec model.expanded paramValues
-      , Effects.none
+      , Cmd.none
       )
 
 
 
--- Effects
+-- Cmd
 
 
-tryRequest : Http.Request -> Effects Action
+tryRequest : Http.Request -> Cmd Msg
 tryRequest req =
   let
     settings =
       Http.defaultSettings
   in
-    Http.send settings req
-      |> Task.toResult
-      |> Task.map RequestResult
-      |> Effects.task
+    -- Task.perform FetchFail FetchSuccess (Http.get decodeGifUrl url)
+    Task.perform RequestFail RequestResult (Http.send settings req)
 
-
-getJsonSpec : String -> Effects Action
+getJsonSpec : String -> Cmd Msg
 getJsonSpec url =
-  Http.get decodeSpec url
-    |> Task.toMaybe
-    |> Task.map RenderSpec
-    |> Effects.task
+  Task.perform FetchSpecFail FetchSpecOk (Http.get decodeSpec url)
 
+  -- Http.get decodeSpec url
+  --   |> Task.toMaybe
+  --   |> Task.map RenderSpec
+  --   |> Cmd.task
 
 
 -- JSON decoders
