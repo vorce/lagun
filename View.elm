@@ -116,8 +116,10 @@ requestBuilder verb path' paramValues =
         |> Dict.fromList
   in
     { verb = verb
-    , headers = []
-    , url = ("http://petstore.swagger.io" ++ (pathWithVariables path' relevantPathParams))
+    , headers =
+        []
+        -- Accept: application/json, application/xml
+    , url = ("http://petstore.swagger.io/v2" ++ (pathWithVariables path' relevantPathParams))
     , body = Http.empty
     }
 
