@@ -1,32 +1,32 @@
-module View (..) where
+module View exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (placeholder, value, class, type', src, alt, href, name)
-import Html.Events exposing (onClick, on, targetValue)
+import Html.Events exposing (onClick, onInput, targetValue)
 import Markdown
 import Regex
-import Lagun exposing (Action, Model, Parameter, ParameterKey, ParameterValues, Operations, Paths, Response, Operation)
+import Lagun exposing (Msg, Model, Parameter, ParameterKey, ParameterValues, Operations, Paths, Response, Operation)
 import Dict exposing (Dict)
 import Set exposing (Set)
 import Http
 
 
-view : Signal.Address Action -> Model -> Html
-view address { specUrl, spec, expanded, paramValues } =
+view : Model -> Html Msg
+view { specUrl, spec, expanded, paramValues } =
   case spec of
     Maybe.Just spec ->
       div
         [ class "container" ]
         [ div
             [ class "row" ]
-            (headerHtml address specUrl)
+            (headerHtml specUrl)
         , div
             []
             [ h1 [] [ text spec.info.title ]
-            , Markdown.toHtml spec.info.description
+            , Markdown.toHtml [class "div"] spec.info.description
             , p [] [ text ("API Version: " ++ spec.info.version) ]
             , hr [] []
-            , pathList address paramValues spec.paths expanded
+            , pathList paramValues spec.paths expanded
             ]
         ]
 
@@ -36,35 +36,35 @@ view address { specUrl, spec, expanded, paramValues } =
         [ p [] [ text "No API specification found, or something went wrong while parsing it. U_U" ]
         , div
             [ class "row" ]
-            (headerHtml address specUrl)
+            (headerHtml specUrl)
         ]
 
 
-headerHtml : Signal.Address Action -> String -> List Html
-headerHtml address specUrl =
+headerHtml : String -> List (Html Msg)
+headerHtml specUrl =
   [ div
       [ class "column column-80" ]
-      [ specUrlInput address specUrl ]
+      [ specUrlInput specUrl ]
   , div
       [ class "column column-20" ]
-      [ button [ onClick address (Lagun.FetchSpec (Maybe.Just specUrl)) ] [ text "Lagun it!" ]
+      [ button [ onClick (Lagun.FetchSpec (Maybe.Just specUrl)) ] [ text "Lagun it!" ]
       ]
   ]
 
 
-specUrlInput : Signal.Address Action -> String -> Html
-specUrlInput address specUrl =
+specUrlInput : String -> Html Msg
+specUrlInput specUrl =
   input
     [ type' "text"
     , placeholder specUrl
     , value specUrl
-    , on "input" targetValue (\newurl -> Signal.message address (Lagun.FetchSpec (Just newurl)))
+    , onInput (\i -> Lagun.FetchSpec (Maybe.Just i))
     ]
     []
 
 
-operationEntry : Signal.Address Action -> ParameterValues -> String -> ( String, Operation ) -> Html
-operationEntry address paramValues path' ( opName, op ) =
+operationEntry : ParameterValues -> String -> ( String, Operation ) -> Html Msg
+operationEntry paramValues path' ( opName, op ) =
   dt
     []
     [ div
@@ -83,10 +83,10 @@ operationEntry address paramValues path' ( opName, op ) =
             [ div
                 []
                 [ h6 [] [ text "Parameters" ]
-                , parametersTable (parametersTableBody address paramValues path' opName op.parameters)
+                , parametersTable (parametersTableBody paramValues path' opName op.parameters)
                 , h6 [] [ text "Responses" ]
                 , responsesTable op.responses
-                , requestButton address (requestBuilder opName path' paramValues)
+                , requestButton (requestBuilder opName path' paramValues)
                 ]
             ]
         ]
@@ -124,21 +124,21 @@ requestBuilder verb path' paramValues =
     }
 
 
-requestButton : Signal.Address Action -> Http.Request -> Html
-requestButton address req =
+requestButton : Http.Request -> Html Msg
+requestButton req =
   button
-    [ class "button", onClick address (Lagun.TryRequest req) ]
+    [ class "button", onClick (Lagun.TryRequest req) ]
     [ text "Send request" ]
 
 
-parametersTableBody : Signal.Address Action -> ParameterValues -> String -> String -> List Parameter -> Html
-parametersTableBody address paramValues path' opName ps =
+parametersTableBody : ParameterValues -> String -> String -> List Parameter -> Html Msg
+parametersTableBody paramValues path' opName ps =
   tbody
     []
-    (List.map (parameterEntry address paramValues path' opName) ps)
+    (List.map (parameterEntry paramValues path' opName) ps)
 
 
-parametersTable : Html -> Html
+parametersTable : Html msg -> Html msg
 parametersTable tableBody =
   table
     []
@@ -167,21 +167,18 @@ parametersTable tableBody =
     ]
 
 
-parameterEntryInput : Signal.Address Action -> ParameterValues -> ParameterKey -> Html
-parameterEntryInput address currentValues paramKey =
+parameterEntryInput : ParameterValues -> ParameterKey -> Html Msg
+parameterEntryInput currentValues paramKey =
   input
     [ type' "text"
     , value (Maybe.withDefault "" (Dict.get paramKey currentValues))
-    , on
-        "input"
-        targetValue
-        (\val -> Signal.message address (Lagun.ParameterInput (Dict.insert paramKey val currentValues)))
+    , onInput (\val -> (Lagun.ParameterInput (Dict.insert paramKey val currentValues)))
     ]
     []
 
 
-parameterEntry : Signal.Address Action -> ParameterValues -> String -> String -> Parameter -> Html
-parameterEntry address currentValues path' opName param =
+parameterEntry : ParameterValues -> String -> String -> Parameter -> Html Msg
+parameterEntry currentValues path' opName param =
   tr
     []
     [ td
@@ -189,7 +186,7 @@ parameterEntry address currentValues path' opName param =
         [ text param.name ]
     , td
         []
-        [ parameterEntryInput address currentValues (parameterKey path' opName param)
+        [ parameterEntryInput currentValues (parameterKey path' opName param)
         ]
     , td
         []
@@ -208,12 +205,12 @@ parameterKey path' opName param =
   ( path', opName, param.in', param.name )
 
 
-operationList : Signal.Address Action -> ParameterValues -> String -> Operations -> Html
-operationList address paramValues path' ops =
-  dl [] (List.map (operationEntry address paramValues path') (Dict.toList ops))
+operationList : ParameterValues -> String -> Operations -> Html Msg
+operationList paramValues path' ops =
+  dl [] (List.map (operationEntry paramValues path') (Dict.toList ops))
 
 
-responseEntry : ( String, Response ) -> Html
+responseEntry : ( String, Response ) -> Html msg
 responseEntry ( httpCode, r ) =
   tr
     []
@@ -233,7 +230,7 @@ responseEntry ( httpCode, r ) =
     ]
 
 
-responsesTable : Dict String Response -> Html
+responsesTable : Dict String Response -> Html msg
 responsesTable rs =
   table
     []
@@ -261,8 +258,8 @@ responsesTable rs =
     ]
 
 
-renderPath : Signal.Address Action -> ParameterValues -> Set String -> ( String, Operations ) -> Html
-renderPath address paramValues expanded ( pathName, ops ) =
+renderPath : ParameterValues -> Set String -> ( String, Operations ) -> Html Msg
+renderPath paramValues expanded ( pathName, ops ) =
   case (Set.member pathName expanded) of
     False ->
       div
@@ -270,7 +267,7 @@ renderPath address paramValues expanded ( pathName, ops ) =
         [ h5
             []
             [ a
-                [ onClick address (Lagun.ExpansionToggled (Set.insert pathName expanded))
+                [ onClick (Lagun.ExpansionToggled (Set.insert pathName expanded))
                 , href ("#" ++ pathName)
                 , name pathName
                 ]
@@ -285,32 +282,32 @@ renderPath address paramValues expanded ( pathName, ops ) =
         [ h5
             []
             [ a
-                [ onClick address (Lagun.ExpansionToggled (Set.remove pathName expanded))
+                [ onClick (Lagun.ExpansionToggled (Set.remove pathName expanded))
                 , href ("#" ++ pathName)
                 , name pathName
                 ]
                 [ fontAwesome "minus-square-o" ]
             , text (" " ++ pathName)
             ]
-        , operationList address paramValues pathName ops
+        , operationList paramValues pathName ops
         ]
 
 
-pathEntry : Signal.Address Action -> ParameterValues -> Set String -> ( String, Operations ) -> Html
-pathEntry address paramValues expanded ( p, ops ) =
+pathEntry : ParameterValues -> Set String -> ( String, Operations ) -> Html Msg
+pathEntry paramValues expanded ( p, ops ) =
   dt
     []
-    [ (renderPath address paramValues expanded ( p, ops ))
+    [ (renderPath paramValues expanded ( p, ops ))
     ]
 
 
-pathList : Signal.Address Action -> ParameterValues -> Paths -> Set String -> Html
-pathList address paramValues paths expanded =
+pathList : ParameterValues -> Paths -> Set String -> Html Msg
+pathList paramValues paths expanded =
   div
     []
-    [ dl [] (List.map (pathEntry address paramValues expanded) (Dict.toList paths)) ]
+    [ dl [] (List.map (pathEntry paramValues expanded) (Dict.toList paths)) ]
 
 
-fontAwesome : String -> Html
+fontAwesome : String -> Html msg
 fontAwesome name =
   span [ class ("fa fa-" ++ name) ] []
