@@ -8,6 +8,7 @@ Uses:
 
 - [Milligram](https://milligram.github.io/)
 - [Font Awesome](https://fortawesome.github.io/Font-Awesome/)
+- [heroku-buildpack-elm](https://github.com/srid/heroku-buildpack-elm) (Waiting for [Update for Elm 0.17](https://github.com/srid/heroku-buildpack-elm/issues/16) to be able to deploy latest version of Lagun to Heroku)
 
 [Demo on Heroku](http://trylagun.herokuapp.com/)
 
@@ -27,4 +28,8 @@ I doubt I will add support for other specs (such as RAML). PRs welcome ;)
 
 - Add support for remaining parameter types: body, query
 - Remove hardcoded host and basePath for requests :-1:
+- Show schema types for body parameters (ugh)
+- Show response model for http responses
+- Show headers for http responses
 - Some tests would be fun and useful
+- Show version of Lagun somewhere on the page (bottom?)
