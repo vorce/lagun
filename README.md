@@ -25,6 +25,6 @@ I doubt I will add support for other specs (such as RAML). PRs welcome ;)
 
 ## TODO / Explore
 
-- Show responses from requests :)
 - Add support for remaining parameter types: body, query
+- Remove hardcoded host and basePath for requests :-1:
 - Some tests would be fun and useful
