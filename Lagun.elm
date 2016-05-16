@@ -11,12 +11,16 @@ import Set exposing (Set)
 
 
 type alias Model = -- TODO model spec as Result spec instead?
-  { specUrl : String, spec : Maybe Spec, expanded : Set String, paramValues : ParameterValues }
+  { specUrl : String,
+  spec : Maybe Spec,
+  expanded : Set String,
+  paramValues : ParameterValues,
+  requestResults : RequestResults }
 
 
 init : String -> ( Model, Cmd Msg )
 init url =
-  ( Model url Maybe.Nothing Set.empty Dict.empty, getJsonSpec url )
+  ( Model url Maybe.Nothing Set.empty Dict.empty Dict.empty, getJsonSpec url)
 
 
 
@@ -27,10 +31,10 @@ type Msg
   = FetchSpec (Maybe String)
   | FetchSpecFail Http.Error
   | FetchSpecOk Spec
-  | TryRequest Http.Request
+  | TryRequest (String, String) Http.Request
   | ExpansionToggled (Set String)
   | RequestFail Http.RawError
-  | RequestResult Http.Response
+  | RequestResult (String, String) Http.Response
   | ParameterInput ParameterValues
 
 
@@ -42,35 +46,36 @@ update action model =
         url =
           (Maybe.withDefault model.specUrl maybeUrl)
       in
-        ( Model url model.spec model.expanded model.paramValues
+        ( Model url model.spec model.expanded model.paramValues model.requestResults
         , getJsonSpec url
         )
 
     FetchSpecOk spec ->
-      ( Model model.specUrl (Maybe.Just spec) model.expanded model.paramValues
+      ( Model model.specUrl (Maybe.Just spec) model.expanded model.paramValues model.requestResults
       , Cmd.none
       )
 
     FetchSpecFail errorMsg ->
-      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues
+      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults
       , Cmd.none) -- TODO: Actually show the error message
 
     ExpansionToggled expanded ->
-      ( Model model.specUrl model.spec expanded model.paramValues
+      ( Model model.specUrl model.spec expanded model.paramValues model.requestResults
       , Cmd.none
       )
 
-    TryRequest request ->
-      ( model, tryRequest request )
+    TryRequest (path', verb) request ->
+      ( model, tryRequest path' verb request )
 
-    RequestResult result ->
-      ( model, Cmd.none )
+    RequestResult key result ->
+      ( Model model.specUrl model.spec model.expanded model.paramValues (Dict.insert key result model.requestResults),
+      Cmd.none )
 
     RequestFail errorMsg ->
       (model, Cmd.none) -- TODO Actually show the error message
 
     ParameterInput paramValues ->
-      ( Model model.specUrl model.spec model.expanded paramValues
+      ( Model model.specUrl model.spec model.expanded paramValues model.requestResults
       , Cmd.none
       )
 
@@ -79,27 +84,23 @@ update action model =
 -- Cmd
 
 
-tryRequest : Http.Request -> Cmd Msg
-tryRequest req =
+tryRequest : String -> String -> Http.Request -> Cmd Msg
+tryRequest path' verb req =
   let
     settings =
       Http.defaultSettings
   in
-    -- Task.perform FetchFail FetchSuccess (Http.get decodeGifUrl url)
-    Task.perform RequestFail RequestResult (Http.send settings req)
+    Task.perform RequestFail (\r -> RequestResult (path', verb) r) (Http.send settings req)
 
 getJsonSpec : String -> Cmd Msg
 getJsonSpec url =
   Task.perform FetchSpecFail FetchSpecOk (Http.get decodeSpec url)
 
-  -- Http.get decodeSpec url
-  --   |> Task.toMaybe
-  --   |> Task.map RenderSpec
-  --   |> Cmd.task
 
 
--- JSON decoders
 
+type alias RequestResults =
+  Dict (String, String) Http.Response
 
 type alias ParameterKey =
   ( String, String, String, String )
@@ -108,6 +109,7 @@ type alias ParameterKey =
 type alias ParameterValues =
   Dict ParameterKey String
 
+-- Used for JSON decoding
 
 type alias Spec =
   { info : Info, paths : Paths, swagger : String, host : String }

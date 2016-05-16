@@ -5,14 +5,15 @@ import Html.Attributes exposing (placeholder, value, class, type', src, alt, hre
 import Html.Events exposing (onClick, onInput, targetValue)
 import Markdown
 import Regex
-import Lagun exposing (Msg, Model, Parameter, ParameterKey, ParameterValues, Operations, Paths, Response, Operation)
+import Lagun exposing (Msg, Model, Parameter, ParameterKey, ParameterValues, Operations, Paths, Response, Operation, RequestResults)
 import Dict exposing (Dict)
 import Set exposing (Set)
 import Http
+import String
 
 
 view : Model -> Html Msg
-view { specUrl, spec, expanded, paramValues } =
+view { specUrl, spec, expanded, paramValues, requestResults } =
   case spec of
     Maybe.Just spec ->
       div
@@ -26,7 +27,7 @@ view { specUrl, spec, expanded, paramValues } =
             , Markdown.toHtml [class "div"] spec.info.description
             , p [] [ text ("API Version: " ++ spec.info.version) ]
             , hr [] []
-            , pathList paramValues spec.paths expanded
+            , pathList paramValues spec.paths expanded requestResults
             ]
         ]
 
@@ -63,8 +64,8 @@ specUrlInput specUrl =
     []
 
 
-operationEntry : ParameterValues -> String -> ( String, Operation ) -> Html Msg
-operationEntry paramValues path' ( opName, op ) =
+operationEntry : ParameterValues -> String -> RequestResults -> ( String, Operation ) -> Html Msg
+operationEntry paramValues path' results ( opName, op ) =
   dt
     []
     [ div
@@ -86,7 +87,8 @@ operationEntry paramValues path' ( opName, op ) =
                 , parametersTable (parametersTableBody paramValues path' opName op.parameters)
                 , h6 [] [ text "Responses" ]
                 , responsesTable op.responses
-                , requestButton (requestBuilder opName path' paramValues)
+                , requestButton path' opName (requestBuilder opName path' paramValues)
+                , requestResult (path', opName) results
                 ]
             ]
         ]
@@ -117,19 +119,55 @@ requestBuilder verb path' paramValues =
   in
     { verb = verb
     , headers =
-        []
-        -- Accept: application/json, application/xml
+        [("Accept", "application/json")]
+        -- application/xml, TODO these reside in paths.<path>.<method>.produces[]
     , url = ("http://petstore.swagger.io/v2" ++ (pathWithVariables path' relevantPathParams))
     , body = Http.empty
     }
 
 
-requestButton : Http.Request -> Html Msg
-requestButton req =
+requestButton : String -> String -> Http.Request -> Html Msg
+requestButton path' verb req =
   button
-    [ class "button", onClick (Lagun.TryRequest req) ]
+    [ class "button", onClick (Lagun.TryRequest (path', verb) req) ]
     [ text "Send request" ]
 
+requestResult : (String, String) -> RequestResults -> Html msg
+requestResult key results =
+  case (Dict.member key results) of
+    True -> div []
+      [ h6 [] [text "Request result"],
+      div [class "row"] (showHttpResponse (Dict.get key results)) ]
+    False -> span [] []
+
+showHttpResponse : Maybe Http.Response -> List (Html a)
+showHttpResponse mr =
+  case mr of
+    Maybe.Just {status, statusText, value, headers} ->
+      case value of
+        Http.Text str ->
+          [ div
+              [class "column column-20"]
+              [text ((toString status) ++ ": " ++ statusText)]
+          , div
+              [class "column column-60"]
+              [code [] [text str]]
+          , div
+              [class "column column-20"]
+              [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]
+          ]
+        _ ->
+          [ div
+            [class "column column-20"]
+            [text ((toString status) ++ ": " ++ statusText)]
+          , div
+            [class "column column-60"]
+            [code [] [text "Unknown (non-string) data returned"]]
+          , div
+            [class "column column-20"]
+            [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]
+          ]
+    Maybe.Nothing -> []
 
 parametersTableBody : ParameterValues -> String -> String -> List Parameter -> Html Msg
 parametersTableBody paramValues path' opName ps =
@@ -205,9 +243,9 @@ parameterKey path' opName param =
   ( path', opName, param.in', param.name )
 
 
-operationList : ParameterValues -> String -> Operations -> Html Msg
-operationList paramValues path' ops =
-  dl [] (List.map (operationEntry paramValues path') (Dict.toList ops))
+operationList : ParameterValues -> String -> Operations -> RequestResults -> Html Msg
+operationList paramValues path' ops results =
+  dl [] (List.map (operationEntry paramValues path' results) (Dict.toList ops))
 
 
 responseEntry : ( String, Response ) -> Html msg
@@ -258,8 +296,8 @@ responsesTable rs =
     ]
 
 
-renderPath : ParameterValues -> Set String -> ( String, Operations ) -> Html Msg
-renderPath paramValues expanded ( pathName, ops ) =
+renderPath : ParameterValues -> Set String -> RequestResults -> ( String, Operations ) -> Html Msg
+renderPath paramValues expanded results ( pathName, ops ) =
   case (Set.member pathName expanded) of
     False ->
       div
@@ -289,23 +327,23 @@ renderPath paramValues expanded ( pathName, ops ) =
                 [ fontAwesome "minus-square-o" ]
             , text (" " ++ pathName)
             ]
-        , operationList paramValues pathName ops
+        , operationList paramValues pathName ops results
         ]
 
 
-pathEntry : ParameterValues -> Set String -> ( String, Operations ) -> Html Msg
-pathEntry paramValues expanded ( p, ops ) =
+pathEntry : ParameterValues -> Set String -> RequestResults -> ( String, Operations ) -> Html Msg
+pathEntry paramValues expanded results ( p, ops ) =
   dt
     []
-    [ (renderPath paramValues expanded ( p, ops ))
+    [ (renderPath paramValues expanded results ( p, ops ))
     ]
 
 
-pathList : ParameterValues -> Paths -> Set String -> Html Msg
-pathList paramValues paths expanded =
+pathList : ParameterValues -> Paths -> Set String -> RequestResults -> Html Msg
+pathList paramValues paths expanded results =
   div
     []
-    [ dl [] (List.map (pathEntry paramValues expanded) (Dict.toList paths)) ]
+    [ dl [] (List.map (pathEntry paramValues expanded results) (Dict.toList paths)) ]
 
 
 fontAwesome : String -> Html msg
