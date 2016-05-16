@@ -136,38 +136,45 @@ requestResult : (String, String) -> RequestResults -> Html msg
 requestResult key results =
   case (Dict.member key results) of
     True -> div []
-      [ h6 [] [text "Request result"],
-      div [class "row"] (showHttpResponse (Dict.get key results)) ]
+      [ h6 []
+        [text "Request result"],
+        div [class "http-response"] [showHttpResponse (Dict.get key results)]
+      ]
     False -> span [] []
 
-showHttpResponse : Maybe Http.Response -> List (Html a)
+showHttpResponse : Maybe Http.Response -> Html msg
 showHttpResponse mr =
   case mr of
     Maybe.Just {status, statusText, value, headers} ->
       case value of
         Http.Text str ->
-          [ div
-              [class "column column-20"]
-              [text ((toString status) ++ ": " ++ statusText)]
-          , div
-              [class "column column-60"]
-              [code [] [text str]]
-          , div
-              [class "column column-20"]
-              [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]
-          ]
+          dt []
+            [dl
+              []
+              [text "Response code: ", strong [] [text (toString status)], text (" - " ++ statusText)]
+            , dl
+              []
+              [text ("Response body:\n"), br [] [], code [] [text str]]
+            , dl
+              []
+              [text ("Response headers:\n"), br [] [],
+              code [] [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]]
+            ]
+
         _ ->
-          [ div
-            [class "column column-20"]
-            [text ((toString status) ++ ": " ++ statusText)]
-          , div
-            [class "column column-60"]
-            [code [] [text "Unknown (non-string) data returned"]]
-          , div
-            [class "column column-20"]
-            [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]
+          dt []
+            [dl
+              []
+              [text "Response code: ", strong [] [text (toString status)], text (" - " ++ statusText)]
+          , dl
+            []
+            [text ("Response body:\n"), br [] [], code [] [text "Unknown (non-strin) data"]]
+          , dl
+            []
+            [text ("Response headers:\n"), br [] [],
+            code [] [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]]
           ]
-    Maybe.Nothing -> []
+    Maybe.Nothing -> span [] []
 
 parametersTableBody : ParameterValues -> String -> String -> List Parameter -> Html Msg
 parametersTableBody paramValues path' opName ps =
