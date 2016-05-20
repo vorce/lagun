@@ -261,7 +261,7 @@ parameterEntry currentValues path' opName param =
         [ text param.in' ]
     , td
         []
-        [ text "TODO: schema" ]
+        [ text param.type' ]
     ]
 
 

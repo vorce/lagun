@@ -124,7 +124,7 @@ type alias Paths =
 
 
 type alias Parameter =
-  { in' : String, name : String, description : String }
+  { in' : String, name : String, description : String, type': String }
 
 
 type alias Response =
@@ -142,14 +142,35 @@ type alias Operation =
   , responses : Dict String Response
   }
 
+typeInfoVal : String -> Json.Decoder Parameter
+typeInfoVal in' =
+  Json.object4
+    Parameter
+    (Json.succeed in')
+    ("name" := Json.string)
+    (optionalField "description")
+    (Json.oneOf ["type" := Json.string, Json.succeed "schema"]) -- TODO check, must be one of string, number, integer, boolean, array, file
+
+typeInfo : String -> Json.Decoder Parameter
+typeInfo in' =
+  case in' of
+    "body" ->
+      typeInfoVal in'
+    "query" ->
+      typeInfoVal in'
+    "header" ->
+      typeInfoVal in'
+    "path" ->
+      typeInfoVal in'
+    "formData" ->
+      typeInfoVal in'
+    _ ->
+      Json.fail (in' ++ " is not a recognized parameter location")
+
 
 decodeParameter : Json.Decoder Parameter
 decodeParameter =
-  Json.object3
-    Parameter
-    ("in" := Json.string)
-    ("name" := Json.string)
-    (optionalField "description")
+    ("in" := Json.string) `Json.andThen` typeInfo
 
 
 decodeResponse : Json.Decoder Response
