@@ -108,26 +108,35 @@ requestBuilder : String -> String -> ParameterValues -> Http.Request
 requestBuilder verb path' paramValues =
   let
     relevantParamValues =
-      Dict.filter (\( p, v, in', n ) val -> p == path' && v == verb) paramValues
+      Dict.filter (\( p, v, _, _ ) _ -> p == path' && v == verb) paramValues
 
-    relevantPathParams =
+    pathParams =
       -- yay :(
-      Dict.filter (\( p, v, in', n ) val -> in' == "path") relevantParamValues
+      Dict.filter (\( _, _, in', _ ) _ -> in' == "path") relevantParamValues
         |> Dict.toList
-        |> List.map (\( ( p, v, in', name ), val ) -> ( "{" ++ name ++ "}", val ))
+        |> List.map (\( ( _, _, _, name ), val ) -> ( "{" ++ name ++ "}", val ))
         |> Dict.fromList
 
-    relevantQueryParams =
-      Dict.filter (\( p, v, in', n ) val -> in' == "query") relevantParamValues
+    queryParams =
+      Dict.filter (\( _, _, in', _ ) _ -> in' == "query") relevantParamValues
         |> Dict.toList
-        |> List.map (\( ( p, v, in', name ), val ) -> (name, val))
+        |> List.map (\( ( _, _, _, name ), val ) -> (name, val))
+
+    bodyParam =
+      Dict.filter (\( _, _, in', _ ) _ -> in' == "body") relevantParamValues
+        |> Dict.toList
+        |> List.map (\( ( _, _, _, _ ), val ) -> Http.string val)
+        |> List.head
+
+    otherHeaders =
+      Maybe.map (\_ -> [("Content-Type", "application/json")]) bodyParam
   in
     { verb = verb
     , headers =
-        [("Accept", "application/json")]
+        List.append [("Accept", "application/json")] (Maybe.withDefault [] otherHeaders)
         -- application/xml, TODO these reside in paths.<path>.<method>.produces[]
-    , url = Http.url ("http://petstore.swagger.io/v2" ++ (pathWithVariables path' relevantPathParams)) relevantQueryParams
-    , body = Http.empty
+    , url = Http.url ("http://petstore.swagger.io/v2" ++ (pathWithVariables path' pathParams)) queryParams
+    , body = Maybe.withDefault Http.empty bodyParam
     }
 
 
