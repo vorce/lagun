@@ -92,15 +92,15 @@ tryRequest path' verb req =
   in
     Task.perform RequestFail (\r -> RequestResult (path', verb) r) (Http.send settings req)
 
+
 getJsonSpec : String -> Cmd Msg
 getJsonSpec url =
   Task.perform FetchSpecFail FetchSpecOk (Http.get decodeSpec url)
 
 
-
-
 type alias RequestResults =
   Dict (String, String) Http.Response
+
 
 type alias ParameterKey =
   ( String, String, String, String )

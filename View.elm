@@ -108,7 +108,7 @@ requestBuilder : String -> String -> ParameterValues -> Http.Request
 requestBuilder verb path' paramValues =
   let
     relevantParamValues =
-      Dict.filter (\( p, v, in', n ) val -> p == path' && v == verb && in' == "path") paramValues
+      Dict.filter (\( p, v, in', n ) val -> p == path' && v == verb) paramValues
 
     relevantPathParams =
       -- yay :(
@@ -116,12 +116,17 @@ requestBuilder verb path' paramValues =
         |> Dict.toList
         |> List.map (\( ( p, v, in', name ), val ) -> ( "{" ++ name ++ "}", val ))
         |> Dict.fromList
+
+    relevantQueryParams =
+      Dict.filter (\( p, v, in', n ) val -> in' == "query") relevantParamValues
+        |> Dict.toList
+        |> List.map (\( ( p, v, in', name ), val ) -> (name, val))
   in
     { verb = verb
     , headers =
         [("Accept", "application/json")]
         -- application/xml, TODO these reside in paths.<path>.<method>.produces[]
-    , url = ("http://petstore.swagger.io/v2" ++ (pathWithVariables path' relevantPathParams))
+    , url = Http.url ("http://petstore.swagger.io/v2" ++ (pathWithVariables path' relevantPathParams)) relevantQueryParams
     , body = Http.empty
     }
 
@@ -154,11 +159,14 @@ showHttpResponse mr =
               [text "Response code: ", strong [] [text (toString status)], text (" - " ++ statusText)]
             , dl
               []
-              [text ("Response body:\n"), br [] [], code [ class "http-response-body" ] [text str]]
+              [text ("Response body:\n"), div [ class "code-box" ] [code [ class "code-text" ] [text str]] ]
             , dl
               []
-              [text ("Response headers:\n"), br [] [],
-              code [] [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]]
+              [text ("Response headers:\n")
+              , div
+                [ class "code-box" ]
+                [ code [ class "code-text"] [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]]
+              ]
             ]
 
         _ ->
@@ -168,11 +176,14 @@ showHttpResponse mr =
               [text "Response code: ", strong [] [text (toString status)], text (" - " ++ statusText)]
           , dl
             []
-            [text ("Response body:\n"), br [] [], code [ class "http-response-body" ] [text "Unknown (non-strin) data"]]
+            [text ("Response body:\n"), div [ class "code-box" ] [code [ class "code-text" ] [text "Unknown (non-string) data"]]]
           , dl
             []
-            [text ("Response headers:\n"), br [] [],
-            code [] [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]]
+            [text ("Response headers:\n")
+            , div
+              [ class "code-box" ]
+              [ code [ class "code-text"] [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]]
+            ]
           ]
     Maybe.Nothing -> span [] []
 

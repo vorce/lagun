@@ -41,7 +41,15 @@
 .params-and-request {
 }
 
-.http-response-body {
-  white-space: pre-wrap;
+.code-box {
+  background: #f4f5f6;
+  border-radius: 0.4rem;
   border: 1px solid #ccc;
+}
+
+.code-text {
+  background: transparent;
+  white-space: pre-wrap;
+  padding: 0.2rem 0.5rem;
+  margin: 0 0.2rem;
 }
