@@ -154,7 +154,7 @@ showHttpResponse mr =
               [text "Response code: ", strong [] [text (toString status)], text (" - " ++ statusText)]
             , dl
               []
-              [text ("Response body:\n"), br [] [], code [] [text str]]
+              [text ("Response body:\n"), br [] [], code [ class "http-response-body" ] [text str]]
             , dl
               []
               [text ("Response headers:\n"), br [] [],
@@ -168,7 +168,7 @@ showHttpResponse mr =
               [text "Response code: ", strong [] [text (toString status)], text (" - " ++ statusText)]
           , dl
             []
-            [text ("Response body:\n"), br [] [], code [] [text "Unknown (non-strin) data"]]
+            [text ("Response body:\n"), br [] [], code [ class "http-response-body" ] [text "Unknown (non-strin) data"]]
           , dl
             []
             [text ("Response headers:\n"), br [] [],
