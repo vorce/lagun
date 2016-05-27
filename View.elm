@@ -122,6 +122,11 @@ requestBuilder verb path' paramValues =
         |> Dict.toList
         |> List.map (\( ( _, _, _, name ), val ) -> (name, val))
 
+    headerParams =
+      Dict.filter (\( _, _, in', _ ) _ -> in' == "header") relevantParamValues
+        |> Dict.toList
+        |> List.map (\( ( _, _, _, name ), val ) -> (name, val))
+
     bodyParam =
       Dict.filter (\( _, _, in', _ ) _ -> in' == "body") relevantParamValues
         |> Dict.toList
@@ -133,7 +138,7 @@ requestBuilder verb path' paramValues =
   in
     { verb = verb
     , headers =
-        List.append [("Accept", "application/json")] (Maybe.withDefault [] otherHeaders)
+        [("Accept", "application/json")] ++ headerParams ++ (Maybe.withDefault [] otherHeaders)
         -- application/xml, TODO these reside in paths.<path>.<method>.produces[]
     , url = Http.url ("http://petstore.swagger.io/v2" ++ (pathWithVariables path' pathParams)) queryParams
     , body = Maybe.withDefault Http.empty bodyParam
@@ -288,10 +293,10 @@ responseEntry ( httpCode, r ) =
       -- Markdown.toHtml
     , td
         []
-        [ text "TODO: Response model" ]
+        [ text "" ] -- TODO response model
     , td
         []
-        [ text "TODO: Headers" ]
+        [ text "" ] -- TODO headers
     ]
 
 
