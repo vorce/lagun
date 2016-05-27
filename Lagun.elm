@@ -10,7 +10,7 @@ import Set exposing (Set)
 -- MODEL
 
 
-type alias Model = -- TODO model spec as Result spec instead?
+type alias Model =
   { specUrl : String,
   spec : Maybe Spec,
   expanded : Set String,
@@ -80,10 +80,6 @@ update action model =
       )
 
 
-
--- Cmd
-
-
 tryRequest : String -> String -> Http.Request -> Cmd Msg
 tryRequest path' verb req =
   let
@@ -112,7 +108,7 @@ type alias ParameterValues =
 -- Used for JSON decoding
 
 type alias Spec =
-  { info : Info, paths : Paths, swagger : String, host : String }
+  { info : Info, paths : Paths, swagger : String, host : String, basePath: String }
 
 
 type alias Info =
@@ -220,9 +216,10 @@ optionalField field =
 
 decodeSpec : Json.Decoder Spec
 decodeSpec =
-  Json.object4
+  Json.object5
     Spec
     decodeInfo
     decodePaths
     ("swagger" := Json.string)
     (optionalField "host")
+    (optionalField "basePath")

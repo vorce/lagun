@@ -27,7 +27,6 @@ I doubt I will add support for other specs (such as [RAML](http://raml.org/)). P
 ## TODO / Explore
 
 - Add support for remaining parameter types: formData
-- Remove hardcoded host and basePath for requests :-1:
 - Show schema types for body parameters (ugh)
 - Show response model for http responses
 - Some tests would be fun and useful

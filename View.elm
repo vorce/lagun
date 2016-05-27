@@ -5,7 +5,7 @@ import Html.Attributes exposing (placeholder, value, class, type', src, alt, hre
 import Html.Events exposing (onClick, onInput, targetValue)
 import Markdown
 import Regex
-import Lagun exposing (Msg, Model, Parameter, ParameterKey, ParameterValues, Operations, Paths, Response, Operation, RequestResults)
+import Lagun exposing (Msg, Model, Parameter, ParameterKey, ParameterValues, Operations, Paths, Response, Operation, RequestResults, Spec)
 import Dict exposing (Dict)
 import Set exposing (Set)
 import Http
@@ -27,7 +27,7 @@ view { specUrl, spec, expanded, paramValues, requestResults } =
             , Markdown.toHtml [class "div"] spec.info.description
             , p [] [ text ("API Version: " ++ spec.info.version) ]
             , hr [] []
-            , pathList paramValues spec.paths expanded requestResults
+            , pathList spec paramValues expanded requestResults
             ]
         ]
 
@@ -64,8 +64,8 @@ specUrlInput specUrl =
     []
 
 
-operationEntry : ParameterValues -> String -> RequestResults -> ( String, Operation ) -> Html Msg
-operationEntry paramValues path' results ( opName, op ) =
+operationEntry : String -> ParameterValues -> String -> RequestResults -> ( String, Operation ) -> Html Msg
+operationEntry url paramValues path' results ( opName, op ) =
   dt
     []
     [ div
@@ -87,7 +87,7 @@ operationEntry paramValues path' results ( opName, op ) =
                 , parametersTable (parametersTableBody paramValues path' opName op.parameters)
                 , h6 [] [ text "Responses" ]
                 , responsesTable op.responses
-                , requestButton path' opName (requestBuilder opName path' paramValues)
+                , requestButton path' opName (requestBuilder url opName path' paramValues)
                 , requestResult (path', opName) results
                 ]
             ]
@@ -104,8 +104,8 @@ pathWithVariables path' variables =
     Regex.replace Regex.All re (\{ match } -> (Maybe.withDefault "" (Dict.get match variables))) path'
 
 
-requestBuilder : String -> String -> ParameterValues -> Http.Request
-requestBuilder verb path' paramValues =
+requestBuilder : String -> String -> String -> ParameterValues -> Http.Request
+requestBuilder url verb path' paramValues =
   let
     relevantParamValues =
       Dict.filter (\( p, v, _, _ ) _ -> p == path' && v == verb) paramValues
@@ -140,7 +140,7 @@ requestBuilder verb path' paramValues =
     , headers =
         [("Accept", "application/json")] ++ headerParams ++ (Maybe.withDefault [] otherHeaders)
         -- application/xml, TODO these reside in paths.<path>.<method>.produces[]
-    , url = Http.url ("http://petstore.swagger.io/v2" ++ (pathWithVariables path' pathParams)) queryParams
+    , url = Http.url (url ++ (pathWithVariables path' pathParams)) queryParams
     , body = Maybe.withDefault Http.empty bodyParam
     }
 
@@ -149,7 +149,7 @@ requestButton : String -> String -> Http.Request -> Html Msg
 requestButton path' verb req =
   button
     [ class "button", onClick (Lagun.TryRequest (path', verb) req) ]
-    [ text "Send request" ]
+    [ text ("Request " ++ verb) ]
 
 requestResult : (String, String) -> RequestResults -> Html msg
 requestResult key results =
@@ -179,7 +179,10 @@ showHttpResponse mr =
               [text ("Response headers:\n")
               , div
                 [ class "code-box" ]
-                [ code [ class "code-text"] [text (String.join "<br />\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]]
+                [ code
+                  [ class "code-text"]
+                  [text (String.join "\n" (List.map (\(k, v) -> (k ++ ": " ++ v)) (Dict.toList headers)))]
+                ]
               ]
             ]
 
@@ -275,9 +278,9 @@ parameterKey path' opName param =
   ( path', opName, param.in', param.name )
 
 
-operationList : ParameterValues -> String -> Operations -> RequestResults -> Html Msg
-operationList paramValues path' ops results =
-  dl [] (List.map (operationEntry paramValues path' results) (Dict.toList ops))
+operationList : String -> ParameterValues -> String -> Operations -> RequestResults -> Html Msg
+operationList url paramValues path' ops results =
+  dl [] (List.map (operationEntry url paramValues path' results) (Dict.toList ops))
 
 
 responseEntry : ( String, Response ) -> Html msg
@@ -328,54 +331,68 @@ responsesTable rs =
     ]
 
 
-renderPath : ParameterValues -> Set String -> RequestResults -> ( String, Operations ) -> Html Msg
-renderPath paramValues expanded results ( pathName, ops ) =
+renderHiddenPath : String -> Set String -> Html Msg
+renderHiddenPath pathName expanded =
+  div
+    []
+    [ h5
+        []
+        [ a
+            [ onClick (Lagun.ExpansionToggled (Set.insert pathName expanded))
+            , href ("#" ++ pathName)
+            , name pathName
+            ]
+            [ fontAwesome "plus-square-o" ]
+        , text (" " ++ pathName)
+        ]
+    ]
+
+renderExpandedPath : String -> Set String -> Html Msg -> Html Msg
+renderExpandedPath pathName expanded opsList =
+  div
+    []
+    [ h5
+        []
+        [ a
+            [ onClick (Lagun.ExpansionToggled (Set.remove pathName expanded))
+            , href ("#" ++ pathName)
+            , name pathName
+            ]
+            [ fontAwesome "minus-square-o" ]
+        , text (" " ++ pathName)
+        ]
+    , opsList
+    ]
+
+renderPath : String -> Set String -> Html Msg -> Html Msg
+renderPath pathName expanded opsList =
   case (Set.member pathName expanded) of
     False ->
-      div
-        []
-        [ h5
-            []
-            [ a
-                [ onClick (Lagun.ExpansionToggled (Set.insert pathName expanded))
-                , href ("#" ++ pathName)
-                , name pathName
-                ]
-                [ fontAwesome "plus-square-o" ]
-            , text (" " ++ pathName)
-            ]
-        ]
+      renderHiddenPath pathName expanded
 
     True ->
-      div
-        []
-        [ h5
-            []
-            [ a
-                [ onClick (Lagun.ExpansionToggled (Set.remove pathName expanded))
-                , href ("#" ++ pathName)
-                , name pathName
-                ]
-                [ fontAwesome "minus-square-o" ]
-            , text (" " ++ pathName)
-            ]
-        , operationList paramValues pathName ops results
-        ]
+      renderExpandedPath pathName expanded opsList
 
 
-pathEntry : ParameterValues -> Set String -> RequestResults -> ( String, Operations ) -> Html Msg
-pathEntry paramValues expanded results ( p, ops ) =
+pathEntry : String -> Set String -> Html Msg -> Html Msg
+pathEntry pathName expanded opsList =
   dt
     []
-    [ (renderPath paramValues expanded results ( p, ops ))
+    [ (renderPath pathName expanded opsList)
     ]
 
 
-pathList : ParameterValues -> Paths -> Set String -> RequestResults -> Html Msg
-pathList paramValues paths expanded results =
+pathList : Spec -> ParameterValues -> Set String -> RequestResults -> Html Msg
+pathList spec paramValues expanded results =
   div
     []
-    [ dl [] (List.map (pathEntry paramValues expanded results) (Dict.toList paths)) ]
+    [ dl
+      []
+      (List.map
+        (\(pathName, ops) ->
+          pathEntry pathName expanded (operationList ("http://" ++ spec.host ++ spec.basePath) paramValues pathName ops results))
+        (Dict.toList spec.paths))
+    ]
 
 
 fontAwesome : String -> Html msg

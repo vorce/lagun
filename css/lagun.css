@@ -45,11 +45,11 @@
   background: #f4f5f6;
   border-radius: 0.4rem;
   border: 1px solid #ccc;
+  padding: 0.2rem 0.5rem;
+  margin: 0 0.2rem;
 }
 
 .code-text {
   background: transparent;
   white-space: pre-wrap;
-  padding: 0.2rem 0.5rem;
-  margin: 0 0.2rem;
 }
