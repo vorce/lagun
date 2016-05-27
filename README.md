@@ -10,7 +10,7 @@ Uses:
 - [Font Awesome](https://fortawesome.github.io/Font-Awesome/)
 - [heroku-buildpack-elm](https://github.com/srid/heroku-buildpack-elm)
 
-[Demo on Heroku](http://trylagun.herokuapp.com/)
+[Demo on Heroku](http://trylagun.herokuapp.com/) (also available on [http://vorce.github.io/lagun/](http://vorce.github.io/lagun/))
 
 ## Build
 
