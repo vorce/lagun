@@ -5,6 +5,7 @@ import Json.Decode as Json exposing ((:=), decodeString)
 import Task
 import Dict exposing (Dict)
 import Set exposing (Set)
+import String
 
 
 -- MODEL
@@ -111,7 +112,7 @@ tryRequest path' verb req =
 
 getJsonSpec : String -> Cmd Msg
 getJsonSpec url =
-  Task.perform FetchSpecFail FetchSpecOk (Http.get decodeSpec url)
+  Task.perform FetchSpecFail FetchSpecOk (Http.get (decodeSpec (extractHost url)) url)
 
 
 type alias RequestResults =
@@ -231,15 +232,25 @@ decodeInfo =
 
 optionalField : String -> Json.Decoder String
 optionalField field =
-  Json.oneOf [ field := Json.string, Json.succeed "" ]
+  optionalFieldWithDefault field ""
 
+optionalFieldWithDefault : String -> String -> Json.Decoder String
+optionalFieldWithDefault field default =
+  Json.oneOf [ field := Json.string, Json.succeed default ]
 
-decodeSpec : Json.Decoder Spec
-decodeSpec =
+extractHost : String -> String
+extractHost url =
+  let
+    parts = String.split "/" url
+  in
+    Maybe.withDefault "localhost" (List.drop 2 parts |> List.head)
+
+decodeSpec : String -> Json.Decoder Spec
+decodeSpec defaultHost =
   Json.object5
     Spec
     decodeInfo
     decodePaths
     ("swagger" := Json.string)
-    (optionalField "host")
+    (optionalFieldWithDefault "host" defaultHost)
     (optionalField "basePath")
