@@ -31,3 +31,4 @@ I doubt I will add support for other specs (such as [RAML](http://raml.org/)). P
 - Show response model for http responses
 - Some tests would be fun and useful
 - Show version of Lagun somewhere on the page (bottom?)
+- Structure the code in a nicer way
