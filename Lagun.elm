@@ -55,9 +55,21 @@ update action model =
       , Cmd.none
       )
 
-    FetchSpecFail errorMsg ->
+    FetchSpecFail (Http.UnexpectedPayload error) ->
       (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults
-      , Cmd.none) -- TODO: Actually show the error message
+      , debugCmd (debugOutput "Spec parse failure" error)) -- TODO: Actually show the error message to the user
+
+    FetchSpecFail Http.Timeout ->
+      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults
+      , debugCmd (debugOutput "Spec fetch timed out" ""))
+
+    FetchSpecFail Http.NetworkError ->
+      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults
+      , debugCmd (debugOutput "Spec fetch failed due to a network error" ""))
+
+    FetchSpecFail (Http.BadResponse code msg) ->
+      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults
+      , debugCmd (debugOutput "Spec fetch failed due to a http error" msg))
 
     ExpansionToggled expanded ->
       ( Model model.specUrl model.spec expanded model.paramValues model.requestResults
@@ -79,6 +91,14 @@ update action model =
       , Cmd.none
       )
 
+
+debugCmd : String -> Cmd Msg
+debugCmd error =
+  Cmd.none
+
+debugOutput : String -> String -> String
+debugOutput location msg =
+  Debug.log location msg
 
 tryRequest : String -> String -> Http.Request -> Cmd Msg
 tryRequest path' verb req =
@@ -166,7 +186,7 @@ typeInfo in' =
 
 decodeParameter : Json.Decoder Parameter
 decodeParameter =
-    ("in" := Json.string) `Json.andThen` typeInfo
+  ("in" := Json.string) `Json.andThen` typeInfo
 
 
 decodeResponse : Json.Decoder Response
@@ -182,8 +202,8 @@ decodeOperation =
     Operation
     (optionalField "summary")
     (optionalField "description")
-    (Json.at [ "parameters" ] <| Json.oneOf [ Json.list decodeParameter, Json.succeed [] ])
-    (Json.at [ "responses" ] <| Json.dict decodeResponse)
+    (Json.oneOf [ Json.at [ "parameters" ] <| Json.list decodeParameter, Json.succeed [] ])
+    (Json.oneOf [ Json.at [ "responses" ] <| Json.dict decodeResponse, Json.succeed Dict.empty])
 
 
 decodeOperations : Json.Decoder Operations
