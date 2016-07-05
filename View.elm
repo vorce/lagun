@@ -153,6 +153,22 @@ requestResult key results =
             span [] []
 
 
+showHttpCode : Int -> String -> List (Html msg)
+showHttpCode code statusText =
+    let
+        base =
+            [ text "Response code: ", strong [] [ text (toString code) ], text (" - " ++ statusText ++ " ") ]
+    in
+        if code == 200 then
+            List.append base [ fontAwesome "check-square-o" ]
+        else if code >= 400 && code < 500 then
+            List.append base [ fontAwesome "exclamation-circle", fontAwesome "keyboard-o" ]
+        else if code >= 500 && code < 600 then
+            List.append base [ fontAwesome "exclamation-circle", fontAwesome "server" ]
+        else
+            base
+
+
 showHttpResponse : Maybe Http.Response -> Html msg
 showHttpResponse mr =
     case mr of
@@ -161,8 +177,7 @@ showHttpResponse mr =
                 Http.Text str ->
                     dt []
                         [ dl []
-                            [ text "Response code: ", strong [] [ text (toString status) ], text (" - " ++ statusText) ]
-                          -- TODO: Checkbox on 2xx, something else on 4xx and 5xx.
+                            (showHttpCode status statusText)
                         , dl []
                             [ text ("Response body:\n"), div [ class "code-box" ] [ code [ class "code-text" ] [ text str ] ] ]
                         , dl []
@@ -177,7 +192,7 @@ showHttpResponse mr =
                 _ ->
                     dt []
                         [ dl []
-                            [ text "Response code: ", strong [] [ text (toString status) ], text (" - " ++ statusText) ]
+                            (showHttpCode status statusText)
                         , dl []
                             [ text ("Response body:\n"), div [ class "code-box" ] [ code [ class "code-text" ] [ text "Unknown (non-string) data" ] ] ]
                         , dl []
