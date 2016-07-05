@@ -32,3 +32,4 @@ I doubt I will add support for other specs (such as [RAML](http://raml.org/)). P
 - Some tests would be fun and useful
 - Show version of Lagun somewhere on the page (bottom?)
 - Structure the code in a nicer way
+- Make it friendlier for real usage: set url of spec, disable input of url of spec etc 
