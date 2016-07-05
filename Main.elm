@@ -7,8 +7,9 @@ import Html.App as Html
 
 main : Program Never
 main =
-  Html.program
-  { init = init "http://petstore.swagger.io/v2/swagger.json",
-  update = update,
-  view = view,
-  subscriptions = \_ -> Sub.none }
+    Html.program
+        { init = init "http://petstore.swagger.io/v2/swagger.json"
+        , update = update
+        , view = view
+        , subscriptions = \_ -> Sub.none
+        }
