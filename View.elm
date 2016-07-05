@@ -159,7 +159,7 @@ showHttpCode code statusText =
         base =
             [ text "Response code: ", strong [] [ text (toString code) ], text (" - " ++ statusText ++ " ") ]
     in
-        if code == 200 then
+        if code >= 200 && < 300 then
             List.append base [ fontAwesome "check-square-o" ]
         else if code >= 400 && code < 500 then
             List.append base [ fontAwesome "exclamation-circle", fontAwesome "keyboard-o" ]
