@@ -8403,14 +8403,23 @@ var _evancz$elm_markdown$Markdown$Options = F4(
 		return {githubFlavored: a, defaultHighlighting: b, sanitize: c, smartypants: d};
 	});
 
-var _vorce$lagun$Lagun$extractHost = function (url) {
-	var parts = A2(_elm_lang$core$String$split, '/', url);
-	return A2(
-		_elm_lang$core$Maybe$withDefault,
-		'localhost',
-		_elm_lang$core$List$head(
-			A2(_elm_lang$core$List$drop, 2, parts)));
-};
+var _vorce$lagun$Lagun$extractHost = F2(
+	function (url, servingHost) {
+		var isHttp = _elm_lang$core$Native_Utils.eq(
+			A2(_elm_lang$core$String$left, 4, url),
+			'http');
+		var parts = A2(_elm_lang$core$String$split, '/', url);
+		var _p0 = isHttp;
+		if (_p0 === true) {
+			return A2(
+				_elm_lang$core$Maybe$withDefault,
+				servingHost,
+				_elm_lang$core$List$head(
+					A2(_elm_lang$core$List$drop, 2, parts)));
+		} else {
+			return servingHost;
+		}
+	});
 var _vorce$lagun$Lagun$optionalFieldWithDefault = F2(
 	function (field, $default) {
 		return _elm_lang$core$Json_Decode$oneOf(
@@ -8430,9 +8439,9 @@ var _vorce$lagun$Lagun$debugOutput = F2(
 var _vorce$lagun$Lagun$debugCmd = function (error) {
 	return _elm_lang$core$Platform_Cmd$none;
 };
-var _vorce$lagun$Lagun$Model = F5(
-	function (a, b, c, d, e) {
-		return {specUrl: a, spec: b, expanded: c, paramValues: d, requestResults: e};
+var _vorce$lagun$Lagun$Model = F6(
+	function (a, b, c, d, e, f) {
+		return {specUrl: a, spec: b, expanded: c, paramValues: d, requestResults: e, servingHost: f};
 	});
 var _vorce$lagun$Lagun$Spec = F5(
 	function (a, b, c, d, e) {
@@ -8471,8 +8480,8 @@ var _vorce$lagun$Lagun$typeInfoVal = function (in$) {
 				])));
 };
 var _vorce$lagun$Lagun$typeInfo = function (in$) {
-	var _p0 = in$;
-	switch (_p0) {
+	var _p1 = in$;
+	switch (_p1) {
 		case 'body':
 			return _vorce$lagun$Lagun$typeInfoVal(in$);
 		case 'query':
@@ -8583,100 +8592,103 @@ var _vorce$lagun$Lagun$FetchSpecOk = function (a) {
 var _vorce$lagun$Lagun$FetchSpecFail = function (a) {
 	return {ctor: 'FetchSpecFail', _0: a};
 };
-var _vorce$lagun$Lagun$getJsonSpec = function (url) {
-	return A3(
-		_elm_lang$core$Task$perform,
-		_vorce$lagun$Lagun$FetchSpecFail,
-		_vorce$lagun$Lagun$FetchSpecOk,
-		A2(
-			_evancz$elm_http$Http$get,
-			_vorce$lagun$Lagun$decodeSpec(
-				_vorce$lagun$Lagun$extractHost(url)),
-			url));
-};
+var _vorce$lagun$Lagun$getJsonSpec = F2(
+	function (url, servingHost) {
+		return A3(
+			_elm_lang$core$Task$perform,
+			_vorce$lagun$Lagun$FetchSpecFail,
+			_vorce$lagun$Lagun$FetchSpecOk,
+			A2(
+				_evancz$elm_http$Http$get,
+				_vorce$lagun$Lagun$decodeSpec(
+					A2(_vorce$lagun$Lagun$extractHost, url, servingHost)),
+				url));
+	});
 var _vorce$lagun$Lagun$init = function (flags) {
 	return {
 		ctor: '_Tuple2',
-		_0: A5(_vorce$lagun$Lagun$Model, flags.specUrl, _elm_lang$core$Maybe$Nothing, _elm_lang$core$Set$empty, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty),
-		_1: _vorce$lagun$Lagun$getJsonSpec(flags.specUrl)
+		_0: A6(_vorce$lagun$Lagun$Model, flags.specUrl, _elm_lang$core$Maybe$Nothing, _elm_lang$core$Set$empty, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty, flags.servingHost),
+		_1: A2(_vorce$lagun$Lagun$getJsonSpec, flags.specUrl, flags.servingHost)
 	};
 };
 var _vorce$lagun$Lagun$update = F2(
 	function (action, model) {
-		var _p1 = action;
-		switch (_p1.ctor) {
+		var _p2 = action;
+		switch (_p2.ctor) {
 			case 'FetchSpec':
-				var url = A2(_elm_lang$core$Maybe$withDefault, model.specUrl, _p1._0);
+				var url = A2(_elm_lang$core$Maybe$withDefault, model.specUrl, _p2._0);
 				return {
 					ctor: '_Tuple2',
-					_0: A5(_vorce$lagun$Lagun$Model, url, model.spec, model.expanded, model.paramValues, model.requestResults),
-					_1: _vorce$lagun$Lagun$getJsonSpec(url)
+					_0: A6(_vorce$lagun$Lagun$Model, url, model.spec, model.expanded, model.paramValues, model.requestResults, model.servingHost),
+					_1: A2(_vorce$lagun$Lagun$getJsonSpec, url, model.servingHost)
 				};
 			case 'FetchSpecOk':
 				return {
 					ctor: '_Tuple2',
-					_0: A5(
+					_0: A6(
 						_vorce$lagun$Lagun$Model,
 						model.specUrl,
-						_elm_lang$core$Maybe$Just(_p1._0),
+						_elm_lang$core$Maybe$Just(_p2._0),
 						model.expanded,
 						model.paramValues,
-						model.requestResults),
+						model.requestResults,
+						model.servingHost),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'FetchSpecFail':
-				switch (_p1._0.ctor) {
+				switch (_p2._0.ctor) {
 					case 'UnexpectedPayload':
 						return {
 							ctor: '_Tuple2',
-							_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
+							_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults, model.servingHost),
 							_1: _vorce$lagun$Lagun$debugCmd(
-								A2(_vorce$lagun$Lagun$debugOutput, 'Spec parse failure', _p1._0._0))
+								A2(_vorce$lagun$Lagun$debugOutput, 'Spec parse failure', _p2._0._0))
 						};
 					case 'Timeout':
 						return {
 							ctor: '_Tuple2',
-							_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
+							_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults, model.servingHost),
 							_1: _vorce$lagun$Lagun$debugCmd(
 								A2(_vorce$lagun$Lagun$debugOutput, 'Spec fetch timed out', ''))
 						};
 					case 'NetworkError':
 						return {
 							ctor: '_Tuple2',
-							_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
+							_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults, model.servingHost),
 							_1: _vorce$lagun$Lagun$debugCmd(
 								A2(_vorce$lagun$Lagun$debugOutput, 'Spec fetch failed due to a network error', ''))
 						};
 					default:
 						return {
 							ctor: '_Tuple2',
-							_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
+							_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults, model.servingHost),
 							_1: _vorce$lagun$Lagun$debugCmd(
-								A2(_vorce$lagun$Lagun$debugOutput, 'Spec fetch failed due to a http error', _p1._0._1))
+								A2(_vorce$lagun$Lagun$debugOutput, 'Spec fetch failed due to a http error', _p2._0._1))
 						};
 				}
 			case 'ExpansionToggled':
 				return {
 					ctor: '_Tuple2',
-					_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, _p1._0, model.paramValues, model.requestResults),
+					_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, _p2._0, model.paramValues, model.requestResults, model.servingHost),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'TryRequest':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: A3(_vorce$lagun$Lagun$tryRequest, _p1._0._0, _p1._0._1, _p1._1)
+					_1: A3(_vorce$lagun$Lagun$tryRequest, _p2._0._0, _p2._0._1, _p2._1)
 				};
 			case 'RequestResult':
 				return {
 					ctor: '_Tuple2',
-					_0: A5(
+					_0: A6(
 						_vorce$lagun$Lagun$Model,
 						model.specUrl,
 						model.spec,
 						model.expanded,
 						model.paramValues,
-						A3(_elm_lang$core$Dict$insert, _p1._0, _p1._1, model.requestResults)),
+						A3(_elm_lang$core$Dict$insert, _p2._0, _p2._1, model.requestResults),
+						model.servingHost),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'RequestFail':
@@ -8684,7 +8696,7 @@ var _vorce$lagun$Lagun$update = F2(
 			default:
 				return {
 					ctor: '_Tuple2',
-					_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, model.expanded, _p1._0, model.requestResults),
+					_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, model.expanded, _p2._0, model.requestResults, model.servingHost),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
@@ -9735,10 +9747,15 @@ var _vorce$lagun$Main$main = {
 		}),
 	flags: A2(
 		_elm_lang$core$Json_Decode$andThen,
-		A2(_elm_lang$core$Json_Decode_ops[':='], 'specUrl', _elm_lang$core$Json_Decode$string),
-		function (specUrl) {
-			return _elm_lang$core$Json_Decode$succeed(
-				{specUrl: specUrl});
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'servingHost', _elm_lang$core$Json_Decode$string),
+		function (servingHost) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				A2(_elm_lang$core$Json_Decode_ops[':='], 'specUrl', _elm_lang$core$Json_Decode$string),
+				function (specUrl) {
+					return _elm_lang$core$Json_Decode$succeed(
+						{servingHost: servingHost, specUrl: specUrl});
+				});
 		})
 };
 
