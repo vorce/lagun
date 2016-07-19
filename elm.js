@@ -8403,7 +8403,7 @@ var _evancz$elm_markdown$Markdown$Options = F4(
 		return {githubFlavored: a, defaultHighlighting: b, sanitize: c, smartypants: d};
 	});
 
-var _user$project$Lagun$extractHost = function (url) {
+var _vorce$lagun$Lagun$extractHost = function (url) {
 	var parts = A2(_elm_lang$core$String$split, '/', url);
 	return A2(
 		_elm_lang$core$Maybe$withDefault,
@@ -8411,7 +8411,7 @@ var _user$project$Lagun$extractHost = function (url) {
 		_elm_lang$core$List$head(
 			A2(_elm_lang$core$List$drop, 2, parts)));
 };
-var _user$project$Lagun$optionalFieldWithDefault = F2(
+var _vorce$lagun$Lagun$optionalFieldWithDefault = F2(
 	function (field, $default) {
 		return _elm_lang$core$Json_Decode$oneOf(
 			_elm_lang$core$Native_List.fromArray(
@@ -8420,49 +8420,49 @@ var _user$project$Lagun$optionalFieldWithDefault = F2(
 					_elm_lang$core$Json_Decode$succeed($default)
 				]));
 	});
-var _user$project$Lagun$optionalField = function (field) {
-	return A2(_user$project$Lagun$optionalFieldWithDefault, field, '');
+var _vorce$lagun$Lagun$optionalField = function (field) {
+	return A2(_vorce$lagun$Lagun$optionalFieldWithDefault, field, '');
 };
-var _user$project$Lagun$debugOutput = F2(
+var _vorce$lagun$Lagun$debugOutput = F2(
 	function (location, msg) {
 		return A2(_elm_lang$core$Debug$log, location, msg);
 	});
-var _user$project$Lagun$debugCmd = function (error) {
+var _vorce$lagun$Lagun$debugCmd = function (error) {
 	return _elm_lang$core$Platform_Cmd$none;
 };
-var _user$project$Lagun$Model = F5(
+var _vorce$lagun$Lagun$Model = F5(
 	function (a, b, c, d, e) {
 		return {specUrl: a, spec: b, expanded: c, paramValues: d, requestResults: e};
 	});
-var _user$project$Lagun$Spec = F5(
+var _vorce$lagun$Lagun$Spec = F5(
 	function (a, b, c, d, e) {
 		return {info: a, paths: b, swagger: c, host: d, basePath: e};
 	});
-var _user$project$Lagun$Info = F3(
+var _vorce$lagun$Lagun$Info = F3(
 	function (a, b, c) {
 		return {title: a, description: b, version: c};
 	});
-var _user$project$Lagun$decodeInfo = A2(
+var _vorce$lagun$Lagun$decodeInfo = A2(
 	_elm_lang$core$Json_Decode$at,
 	_elm_lang$core$Native_List.fromArray(
 		['info']),
 	A4(
 		_elm_lang$core$Json_Decode$object3,
-		_user$project$Lagun$Info,
+		_vorce$lagun$Lagun$Info,
 		A2(_elm_lang$core$Json_Decode_ops[':='], 'title', _elm_lang$core$Json_Decode$string),
-		_user$project$Lagun$optionalField('description'),
+		_vorce$lagun$Lagun$optionalField('description'),
 		A2(_elm_lang$core$Json_Decode_ops[':='], 'version', _elm_lang$core$Json_Decode$string)));
-var _user$project$Lagun$Parameter = F4(
+var _vorce$lagun$Lagun$Parameter = F4(
 	function (a, b, c, d) {
 		return {in$: a, name: b, description: c, type$: d};
 	});
-var _user$project$Lagun$typeInfoVal = function (in$) {
+var _vorce$lagun$Lagun$typeInfoVal = function (in$) {
 	return A5(
 		_elm_lang$core$Json_Decode$object4,
-		_user$project$Lagun$Parameter,
+		_vorce$lagun$Lagun$Parameter,
 		_elm_lang$core$Json_Decode$succeed(in$),
 		A2(_elm_lang$core$Json_Decode_ops[':='], 'name', _elm_lang$core$Json_Decode$string),
-		_user$project$Lagun$optionalField('description'),
+		_vorce$lagun$Lagun$optionalField('description'),
 		_elm_lang$core$Json_Decode$oneOf(
 			_elm_lang$core$Native_List.fromArray(
 				[
@@ -8470,44 +8470,44 @@ var _user$project$Lagun$typeInfoVal = function (in$) {
 					_elm_lang$core$Json_Decode$succeed('schema')
 				])));
 };
-var _user$project$Lagun$typeInfo = function (in$) {
+var _vorce$lagun$Lagun$typeInfo = function (in$) {
 	var _p0 = in$;
 	switch (_p0) {
 		case 'body':
-			return _user$project$Lagun$typeInfoVal(in$);
+			return _vorce$lagun$Lagun$typeInfoVal(in$);
 		case 'query':
-			return _user$project$Lagun$typeInfoVal(in$);
+			return _vorce$lagun$Lagun$typeInfoVal(in$);
 		case 'header':
-			return _user$project$Lagun$typeInfoVal(in$);
+			return _vorce$lagun$Lagun$typeInfoVal(in$);
 		case 'path':
-			return _user$project$Lagun$typeInfoVal(in$);
+			return _vorce$lagun$Lagun$typeInfoVal(in$);
 		case 'formData':
-			return _user$project$Lagun$typeInfoVal(in$);
+			return _vorce$lagun$Lagun$typeInfoVal(in$);
 		default:
 			return _elm_lang$core$Json_Decode$fail(
 				A2(_elm_lang$core$Basics_ops['++'], in$, ' is not a recognized parameter location'));
 	}
 };
-var _user$project$Lagun$decodeParameter = A2(
+var _vorce$lagun$Lagun$decodeParameter = A2(
 	_elm_lang$core$Json_Decode$andThen,
 	A2(_elm_lang$core$Json_Decode_ops[':='], 'in', _elm_lang$core$Json_Decode$string),
-	_user$project$Lagun$typeInfo);
-var _user$project$Lagun$Response = function (a) {
+	_vorce$lagun$Lagun$typeInfo);
+var _vorce$lagun$Lagun$Response = function (a) {
 	return {description: a};
 };
-var _user$project$Lagun$decodeResponse = A2(
+var _vorce$lagun$Lagun$decodeResponse = A2(
 	_elm_lang$core$Json_Decode$object1,
-	_user$project$Lagun$Response,
+	_vorce$lagun$Lagun$Response,
 	A2(_elm_lang$core$Json_Decode_ops[':='], 'description', _elm_lang$core$Json_Decode$string));
-var _user$project$Lagun$Operation = F4(
+var _vorce$lagun$Lagun$Operation = F4(
 	function (a, b, c, d) {
 		return {summary: a, description: b, parameters: c, responses: d};
 	});
-var _user$project$Lagun$decodeOperation = A5(
+var _vorce$lagun$Lagun$decodeOperation = A5(
 	_elm_lang$core$Json_Decode$object4,
-	_user$project$Lagun$Operation,
-	_user$project$Lagun$optionalField('summary'),
-	_user$project$Lagun$optionalField('description'),
+	_vorce$lagun$Lagun$Operation,
+	_vorce$lagun$Lagun$optionalField('summary'),
+	_vorce$lagun$Lagun$optionalField('description'),
 	_elm_lang$core$Json_Decode$oneOf(
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -8515,7 +8515,7 @@ var _user$project$Lagun$decodeOperation = A5(
 				_elm_lang$core$Json_Decode$at,
 				_elm_lang$core$Native_List.fromArray(
 					['parameters']),
-				_elm_lang$core$Json_Decode$list(_user$project$Lagun$decodeParameter)),
+				_elm_lang$core$Json_Decode$list(_vorce$lagun$Lagun$decodeParameter)),
 				_elm_lang$core$Json_Decode$succeed(
 				_elm_lang$core$Native_List.fromArray(
 					[]))
@@ -8527,81 +8527,81 @@ var _user$project$Lagun$decodeOperation = A5(
 				_elm_lang$core$Json_Decode$at,
 				_elm_lang$core$Native_List.fromArray(
 					['responses']),
-				_elm_lang$core$Json_Decode$dict(_user$project$Lagun$decodeResponse)),
+				_elm_lang$core$Json_Decode$dict(_vorce$lagun$Lagun$decodeResponse)),
 				_elm_lang$core$Json_Decode$succeed(_elm_lang$core$Dict$empty)
 			])));
-var _user$project$Lagun$decodeOperations = _elm_lang$core$Json_Decode$dict(_user$project$Lagun$decodeOperation);
-var _user$project$Lagun$decodePaths = A2(
+var _vorce$lagun$Lagun$decodeOperations = _elm_lang$core$Json_Decode$dict(_vorce$lagun$Lagun$decodeOperation);
+var _vorce$lagun$Lagun$decodePaths = A2(
 	_elm_lang$core$Json_Decode$at,
 	_elm_lang$core$Native_List.fromArray(
 		['paths']),
-	_elm_lang$core$Json_Decode$dict(_user$project$Lagun$decodeOperations));
-var _user$project$Lagun$decodeSpec = function (defaultHost) {
+	_elm_lang$core$Json_Decode$dict(_vorce$lagun$Lagun$decodeOperations));
+var _vorce$lagun$Lagun$decodeSpec = function (defaultHost) {
 	return A6(
 		_elm_lang$core$Json_Decode$object5,
-		_user$project$Lagun$Spec,
-		_user$project$Lagun$decodeInfo,
-		_user$project$Lagun$decodePaths,
+		_vorce$lagun$Lagun$Spec,
+		_vorce$lagun$Lagun$decodeInfo,
+		_vorce$lagun$Lagun$decodePaths,
 		A2(_elm_lang$core$Json_Decode_ops[':='], 'swagger', _elm_lang$core$Json_Decode$string),
-		A2(_user$project$Lagun$optionalFieldWithDefault, 'host', defaultHost),
-		_user$project$Lagun$optionalField('basePath'));
+		A2(_vorce$lagun$Lagun$optionalFieldWithDefault, 'host', defaultHost),
+		_vorce$lagun$Lagun$optionalField('basePath'));
 };
-var _user$project$Lagun$ParameterInput = function (a) {
+var _vorce$lagun$Lagun$ParameterInput = function (a) {
 	return {ctor: 'ParameterInput', _0: a};
 };
-var _user$project$Lagun$RequestResult = F2(
+var _vorce$lagun$Lagun$RequestResult = F2(
 	function (a, b) {
 		return {ctor: 'RequestResult', _0: a, _1: b};
 	});
-var _user$project$Lagun$RequestFail = function (a) {
+var _vorce$lagun$Lagun$RequestFail = function (a) {
 	return {ctor: 'RequestFail', _0: a};
 };
-var _user$project$Lagun$tryRequest = F3(
+var _vorce$lagun$Lagun$tryRequest = F3(
 	function (path$, verb, req) {
 		var settings = _evancz$elm_http$Http$defaultSettings;
 		return A3(
 			_elm_lang$core$Task$perform,
-			_user$project$Lagun$RequestFail,
+			_vorce$lagun$Lagun$RequestFail,
 			function (r) {
 				return A2(
-					_user$project$Lagun$RequestResult,
+					_vorce$lagun$Lagun$RequestResult,
 					{ctor: '_Tuple2', _0: path$, _1: verb},
 					r);
 			},
 			A2(_evancz$elm_http$Http$send, settings, req));
 	});
-var _user$project$Lagun$ExpansionToggled = function (a) {
+var _vorce$lagun$Lagun$ExpansionToggled = function (a) {
 	return {ctor: 'ExpansionToggled', _0: a};
 };
-var _user$project$Lagun$TryRequest = F2(
+var _vorce$lagun$Lagun$TryRequest = F2(
 	function (a, b) {
 		return {ctor: 'TryRequest', _0: a, _1: b};
 	});
-var _user$project$Lagun$FetchSpecOk = function (a) {
+var _vorce$lagun$Lagun$FetchSpecOk = function (a) {
 	return {ctor: 'FetchSpecOk', _0: a};
 };
-var _user$project$Lagun$FetchSpecFail = function (a) {
+var _vorce$lagun$Lagun$FetchSpecFail = function (a) {
 	return {ctor: 'FetchSpecFail', _0: a};
 };
-var _user$project$Lagun$getJsonSpec = function (url) {
+var _vorce$lagun$Lagun$getJsonSpec = function (url) {
 	return A3(
 		_elm_lang$core$Task$perform,
-		_user$project$Lagun$FetchSpecFail,
-		_user$project$Lagun$FetchSpecOk,
+		_vorce$lagun$Lagun$FetchSpecFail,
+		_vorce$lagun$Lagun$FetchSpecOk,
 		A2(
 			_evancz$elm_http$Http$get,
-			_user$project$Lagun$decodeSpec(
-				_user$project$Lagun$extractHost(url)),
+			_vorce$lagun$Lagun$decodeSpec(
+				_vorce$lagun$Lagun$extractHost(url)),
 			url));
 };
-var _user$project$Lagun$init = function (url) {
+var _vorce$lagun$Lagun$init = function (flags) {
 	return {
 		ctor: '_Tuple2',
-		_0: A5(_user$project$Lagun$Model, url, _elm_lang$core$Maybe$Nothing, _elm_lang$core$Set$empty, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty),
-		_1: _user$project$Lagun$getJsonSpec(url)
+		_0: A5(_vorce$lagun$Lagun$Model, flags.specUrl, _elm_lang$core$Maybe$Nothing, _elm_lang$core$Set$empty, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty),
+		_1: _vorce$lagun$Lagun$getJsonSpec(flags.specUrl)
 	};
 };
-var _user$project$Lagun$update = F2(
+var _vorce$lagun$Lagun$update = F2(
 	function (action, model) {
 		var _p1 = action;
 		switch (_p1.ctor) {
@@ -8609,14 +8609,14 @@ var _user$project$Lagun$update = F2(
 				var url = A2(_elm_lang$core$Maybe$withDefault, model.specUrl, _p1._0);
 				return {
 					ctor: '_Tuple2',
-					_0: A5(_user$project$Lagun$Model, url, model.spec, model.expanded, model.paramValues, model.requestResults),
-					_1: _user$project$Lagun$getJsonSpec(url)
+					_0: A5(_vorce$lagun$Lagun$Model, url, model.spec, model.expanded, model.paramValues, model.requestResults),
+					_1: _vorce$lagun$Lagun$getJsonSpec(url)
 				};
 			case 'FetchSpecOk':
 				return {
 					ctor: '_Tuple2',
 					_0: A5(
-						_user$project$Lagun$Model,
+						_vorce$lagun$Lagun$Model,
 						model.specUrl,
 						_elm_lang$core$Maybe$Just(_p1._0),
 						model.expanded,
@@ -8629,49 +8629,49 @@ var _user$project$Lagun$update = F2(
 					case 'UnexpectedPayload':
 						return {
 							ctor: '_Tuple2',
-							_0: A5(_user$project$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
-							_1: _user$project$Lagun$debugCmd(
-								A2(_user$project$Lagun$debugOutput, 'Spec parse failure', _p1._0._0))
+							_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
+							_1: _vorce$lagun$Lagun$debugCmd(
+								A2(_vorce$lagun$Lagun$debugOutput, 'Spec parse failure', _p1._0._0))
 						};
 					case 'Timeout':
 						return {
 							ctor: '_Tuple2',
-							_0: A5(_user$project$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
-							_1: _user$project$Lagun$debugCmd(
-								A2(_user$project$Lagun$debugOutput, 'Spec fetch timed out', ''))
+							_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
+							_1: _vorce$lagun$Lagun$debugCmd(
+								A2(_vorce$lagun$Lagun$debugOutput, 'Spec fetch timed out', ''))
 						};
 					case 'NetworkError':
 						return {
 							ctor: '_Tuple2',
-							_0: A5(_user$project$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
-							_1: _user$project$Lagun$debugCmd(
-								A2(_user$project$Lagun$debugOutput, 'Spec fetch failed due to a network error', ''))
+							_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
+							_1: _vorce$lagun$Lagun$debugCmd(
+								A2(_vorce$lagun$Lagun$debugOutput, 'Spec fetch failed due to a network error', ''))
 						};
 					default:
 						return {
 							ctor: '_Tuple2',
-							_0: A5(_user$project$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
-							_1: _user$project$Lagun$debugCmd(
-								A2(_user$project$Lagun$debugOutput, 'Spec fetch failed due to a http error', _p1._0._1))
+							_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults),
+							_1: _vorce$lagun$Lagun$debugCmd(
+								A2(_vorce$lagun$Lagun$debugOutput, 'Spec fetch failed due to a http error', _p1._0._1))
 						};
 				}
 			case 'ExpansionToggled':
 				return {
 					ctor: '_Tuple2',
-					_0: A5(_user$project$Lagun$Model, model.specUrl, model.spec, _p1._0, model.paramValues, model.requestResults),
+					_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, _p1._0, model.paramValues, model.requestResults),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'TryRequest':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: A3(_user$project$Lagun$tryRequest, _p1._0._0, _p1._0._1, _p1._1)
+					_1: A3(_vorce$lagun$Lagun$tryRequest, _p1._0._0, _p1._0._1, _p1._1)
 				};
 			case 'RequestResult':
 				return {
 					ctor: '_Tuple2',
 					_0: A5(
-						_user$project$Lagun$Model,
+						_vorce$lagun$Lagun$Model,
 						model.specUrl,
 						model.spec,
 						model.expanded,
@@ -8684,16 +8684,16 @@ var _user$project$Lagun$update = F2(
 			default:
 				return {
 					ctor: '_Tuple2',
-					_0: A5(_user$project$Lagun$Model, model.specUrl, model.spec, model.expanded, _p1._0, model.requestResults),
+					_0: A5(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, model.expanded, _p1._0, model.requestResults),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
 	});
-var _user$project$Lagun$FetchSpec = function (a) {
+var _vorce$lagun$Lagun$FetchSpec = function (a) {
 	return {ctor: 'FetchSpec', _0: a};
 };
 
-var _user$project$View$fontAwesome = function (name) {
+var _vorce$lagun$View$fontAwesome = function (name) {
 	return A2(
 		_elm_lang$html$Html$span,
 		_elm_lang$core$Native_List.fromArray(
@@ -8704,7 +8704,7 @@ var _user$project$View$fontAwesome = function (name) {
 		_elm_lang$core$Native_List.fromArray(
 			[]));
 };
-var _user$project$View$renderExpandedPath = F3(
+var _vorce$lagun$View$renderExpandedPath = F3(
 	function (pathName, expanded, opsList) {
 		return A2(
 			_elm_lang$html$Html$div,
@@ -8723,7 +8723,7 @@ var _user$project$View$renderExpandedPath = F3(
 							_elm_lang$core$Native_List.fromArray(
 								[
 									_elm_lang$html$Html_Events$onClick(
-									_user$project$Lagun$ExpansionToggled(
+									_vorce$lagun$Lagun$ExpansionToggled(
 										A2(_elm_lang$core$Set$remove, pathName, expanded))),
 									_elm_lang$html$Html_Attributes$href(
 									A2(_elm_lang$core$Basics_ops['++'], '#', pathName)),
@@ -8731,7 +8731,7 @@ var _user$project$View$renderExpandedPath = F3(
 								]),
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_user$project$View$fontAwesome('minus-square-o')
+									_vorce$lagun$View$fontAwesome('minus-square-o')
 								])),
 							_elm_lang$html$Html$text(
 							A2(_elm_lang$core$Basics_ops['++'], ' ', pathName))
@@ -8739,7 +8739,7 @@ var _user$project$View$renderExpandedPath = F3(
 					opsList
 				]));
 	});
-var _user$project$View$renderHiddenPath = F2(
+var _vorce$lagun$View$renderHiddenPath = F2(
 	function (pathName, expanded) {
 		return A2(
 			_elm_lang$html$Html$div,
@@ -8758,7 +8758,7 @@ var _user$project$View$renderHiddenPath = F2(
 							_elm_lang$core$Native_List.fromArray(
 								[
 									_elm_lang$html$Html_Events$onClick(
-									_user$project$Lagun$ExpansionToggled(
+									_vorce$lagun$Lagun$ExpansionToggled(
 										A2(_elm_lang$core$Set$insert, pathName, expanded))),
 									_elm_lang$html$Html_Attributes$href(
 									A2(_elm_lang$core$Basics_ops['++'], '#', pathName)),
@@ -8766,23 +8766,23 @@ var _user$project$View$renderHiddenPath = F2(
 								]),
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_user$project$View$fontAwesome('plus-square-o')
+									_vorce$lagun$View$fontAwesome('plus-square-o')
 								])),
 							_elm_lang$html$Html$text(
 							A2(_elm_lang$core$Basics_ops['++'], ' ', pathName))
 						]))
 				]));
 	});
-var _user$project$View$renderPath = F3(
+var _vorce$lagun$View$renderPath = F3(
 	function (pathName, expanded, opsList) {
 		var _p0 = A2(_elm_lang$core$Set$member, pathName, expanded);
 		if (_p0 === false) {
-			return A2(_user$project$View$renderHiddenPath, pathName, expanded);
+			return A2(_vorce$lagun$View$renderHiddenPath, pathName, expanded);
 		} else {
-			return A3(_user$project$View$renderExpandedPath, pathName, expanded, opsList);
+			return A3(_vorce$lagun$View$renderExpandedPath, pathName, expanded, opsList);
 		}
 	});
-var _user$project$View$pathEntry = F3(
+var _vorce$lagun$View$pathEntry = F3(
 	function (pathName, expanded, opsList) {
 		return A2(
 			_elm_lang$html$Html$dt,
@@ -8790,10 +8790,10 @@ var _user$project$View$pathEntry = F3(
 				[]),
 			_elm_lang$core$Native_List.fromArray(
 				[
-					A3(_user$project$View$renderPath, pathName, expanded, opsList)
+					A3(_vorce$lagun$View$renderPath, pathName, expanded, opsList)
 				]));
 	});
-var _user$project$View$responseEntry = function (_p1) {
+var _vorce$lagun$View$responseEntry = function (_p1) {
 	var _p2 = _p1;
 	return A2(
 		_elm_lang$html$Html$tr,
@@ -8835,7 +8835,7 @@ var _user$project$View$responseEntry = function (_p1) {
 					]))
 			]));
 };
-var _user$project$View$responsesTable = function (rs) {
+var _vorce$lagun$View$responsesTable = function (rs) {
 	return A2(
 		_elm_lang$html$Html$table,
 		_elm_lang$core$Native_List.fromArray(
@@ -8894,15 +8894,15 @@ var _user$project$View$responsesTable = function (rs) {
 					[]),
 				A2(
 					_elm_lang$core$List$map,
-					_user$project$View$responseEntry,
+					_vorce$lagun$View$responseEntry,
 					_elm_lang$core$Dict$toList(rs)))
 			]));
 };
-var _user$project$View$parameterKey = F3(
+var _vorce$lagun$View$parameterKey = F3(
 	function (path$, opName, param) {
 		return {ctor: '_Tuple4', _0: path$, _1: opName, _2: param.in$, _3: param.name};
 	});
-var _user$project$View$parameterEntryInput = F2(
+var _vorce$lagun$View$parameterEntryInput = F2(
 	function (currentValues, paramKey) {
 		return A2(
 			_elm_lang$html$Html$input,
@@ -8916,14 +8916,14 @@ var _user$project$View$parameterEntryInput = F2(
 						A2(_elm_lang$core$Dict$get, paramKey, currentValues))),
 					_elm_lang$html$Html_Events$onInput(
 					function (val) {
-						return _user$project$Lagun$ParameterInput(
+						return _vorce$lagun$Lagun$ParameterInput(
 							A3(_elm_lang$core$Dict$insert, paramKey, val, currentValues));
 					})
 				]),
 			_elm_lang$core$Native_List.fromArray(
 				[]));
 	});
-var _user$project$View$parameterEntry = F4(
+var _vorce$lagun$View$parameterEntry = F4(
 	function (currentValues, path$, opName, param) {
 		return A2(
 			_elm_lang$html$Html$tr,
@@ -8946,9 +8946,9 @@ var _user$project$View$parameterEntry = F4(
 					_elm_lang$core$Native_List.fromArray(
 						[
 							A2(
-							_user$project$View$parameterEntryInput,
+							_vorce$lagun$View$parameterEntryInput,
 							currentValues,
-							A3(_user$project$View$parameterKey, path$, opName, param))
+							A3(_vorce$lagun$View$parameterKey, path$, opName, param))
 						])),
 					A2(
 					_elm_lang$html$Html$td,
@@ -8976,7 +8976,7 @@ var _user$project$View$parameterEntry = F4(
 						]))
 				]));
 	});
-var _user$project$View$parametersTable = function (tableBody) {
+var _vorce$lagun$View$parametersTable = function (tableBody) {
 	return A2(
 		_elm_lang$html$Html$table,
 		_elm_lang$core$Native_List.fromArray(
@@ -9040,7 +9040,7 @@ var _user$project$View$parametersTable = function (tableBody) {
 				tableBody
 			]));
 };
-var _user$project$View$parametersTableBody = F4(
+var _vorce$lagun$View$parametersTableBody = F4(
 	function (paramValues, path$, opName, ps) {
 		return A2(
 			_elm_lang$html$Html$tbody,
@@ -9048,10 +9048,10 @@ var _user$project$View$parametersTableBody = F4(
 				[]),
 			A2(
 				_elm_lang$core$List$map,
-				A3(_user$project$View$parameterEntry, paramValues, path$, opName),
+				A3(_vorce$lagun$View$parameterEntry, paramValues, path$, opName),
 				ps));
 	});
-var _user$project$View$showHttpCode = F2(
+var _vorce$lagun$View$showHttpCode = F2(
 	function (code, statusText) {
 		var base = _elm_lang$core$Native_List.fromArray(
 			[
@@ -9076,24 +9076,24 @@ var _user$project$View$showHttpCode = F2(
 			base,
 			_elm_lang$core$Native_List.fromArray(
 				[
-					_user$project$View$fontAwesome('check-square-o')
+					_vorce$lagun$View$fontAwesome('check-square-o')
 				])) : (((_elm_lang$core$Native_Utils.cmp(code, 400) > -1) && (_elm_lang$core$Native_Utils.cmp(code, 500) < 0)) ? A2(
 			_elm_lang$core$List$append,
 			base,
 			_elm_lang$core$Native_List.fromArray(
 				[
-					_user$project$View$fontAwesome('exclamation-circle'),
-					_user$project$View$fontAwesome('keyboard-o')
+					_vorce$lagun$View$fontAwesome('exclamation-circle'),
+					_vorce$lagun$View$fontAwesome('keyboard-o')
 				])) : (((_elm_lang$core$Native_Utils.cmp(code, 500) > -1) && (_elm_lang$core$Native_Utils.cmp(code, 600) < 0)) ? A2(
 			_elm_lang$core$List$append,
 			base,
 			_elm_lang$core$Native_List.fromArray(
 				[
-					_user$project$View$fontAwesome('exclamation-circle'),
-					_user$project$View$fontAwesome('server')
+					_vorce$lagun$View$fontAwesome('exclamation-circle'),
+					_vorce$lagun$View$fontAwesome('server')
 				])) : base));
 	});
-var _user$project$View$showHttpResponse = function (mr) {
+var _vorce$lagun$View$showHttpResponse = function (mr) {
 	var _p3 = mr;
 	if (_p3.ctor === 'Just') {
 		var _p11 = _p3._0.statusText;
@@ -9111,7 +9111,7 @@ var _user$project$View$showHttpResponse = function (mr) {
 						_elm_lang$html$Html$dl,
 						_elm_lang$core$Native_List.fromArray(
 							[]),
-						A2(_user$project$View$showHttpCode, _p10, _p11)),
+						A2(_vorce$lagun$View$showHttpCode, _p10, _p11)),
 						A2(
 						_elm_lang$html$Html$dl,
 						_elm_lang$core$Native_List.fromArray(
@@ -9191,7 +9191,7 @@ var _user$project$View$showHttpResponse = function (mr) {
 						_elm_lang$html$Html$dl,
 						_elm_lang$core$Native_List.fromArray(
 							[]),
-						A2(_user$project$View$showHttpCode, _p10, _p11)),
+						A2(_vorce$lagun$View$showHttpCode, _p10, _p11)),
 						A2(
 						_elm_lang$html$Html$dl,
 						_elm_lang$core$Native_List.fromArray(
@@ -9270,7 +9270,7 @@ var _user$project$View$showHttpResponse = function (mr) {
 				[]));
 	}
 };
-var _user$project$View$requestResult = F2(
+var _vorce$lagun$View$requestResult = F2(
 	function (key, results) {
 		var _p12 = A2(_elm_lang$core$Dict$member, key, results);
 		if (_p12 === true) {
@@ -9296,7 +9296,7 @@ var _user$project$View$requestResult = F2(
 							]),
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_user$project$View$showHttpResponse(
+								_vorce$lagun$View$showHttpResponse(
 								A2(_elm_lang$core$Dict$get, key, results))
 							]))
 					]));
@@ -9309,7 +9309,7 @@ var _user$project$View$requestResult = F2(
 					[]));
 		}
 	});
-var _user$project$View$requestButton = F3(
+var _vorce$lagun$View$requestButton = F3(
 	function (path$, verb, req) {
 		return A2(
 			_elm_lang$html$Html$button,
@@ -9318,7 +9318,7 @@ var _user$project$View$requestButton = F3(
 					_elm_lang$html$Html_Attributes$class('button'),
 					_elm_lang$html$Html_Events$onClick(
 					A2(
-						_user$project$Lagun$TryRequest,
+						_vorce$lagun$Lagun$TryRequest,
 						{ctor: '_Tuple2', _0: path$, _1: verb},
 						req))
 				]),
@@ -9328,7 +9328,7 @@ var _user$project$View$requestButton = F3(
 					A2(_elm_lang$core$Basics_ops['++'], 'Request ', verb))
 				]));
 	});
-var _user$project$View$parameterValuesIn = F2(
+var _vorce$lagun$View$parameterValuesIn = F2(
 	function (paramValues, in$) {
 		return _elm_lang$core$Dict$toList(
 			A2(
@@ -9340,7 +9340,7 @@ var _user$project$View$parameterValuesIn = F2(
 					}),
 				paramValues));
 	});
-var _user$project$View$pathWithVariables = F2(
+var _vorce$lagun$View$pathWithVariables = F2(
 	function (path$, variables) {
 		var re = _elm_lang$core$Regex$regex('\\{(.*?)\\}');
 		return A4(
@@ -9356,7 +9356,7 @@ var _user$project$View$pathWithVariables = F2(
 			},
 			path$);
 	});
-var _user$project$View$requestBuilder = F4(
+var _vorce$lagun$View$requestBuilder = F4(
 	function (url, verb, path$, paramValues) {
 		var relevantParamValues = A2(
 			_elm_lang$core$Dict$filter,
@@ -9380,21 +9380,21 @@ var _user$project$View$requestBuilder = F4(
 						_1: _p22._1
 					};
 				},
-				A2(_user$project$View$parameterValuesIn, relevantParamValues, 'path')));
+				A2(_vorce$lagun$View$parameterValuesIn, relevantParamValues, 'path')));
 		var queryParams = A2(
 			_elm_lang$core$List$map,
 			function (_p23) {
 				var _p24 = _p23;
 				return {ctor: '_Tuple2', _0: _p24._0._3, _1: _p24._1};
 			},
-			A2(_user$project$View$parameterValuesIn, relevantParamValues, 'query'));
+			A2(_vorce$lagun$View$parameterValuesIn, relevantParamValues, 'query'));
 		var headerParams = A2(
 			_elm_lang$core$List$map,
 			function (_p25) {
 				var _p26 = _p25;
 				return {ctor: '_Tuple2', _0: _p26._0._3, _1: _p26._1};
 			},
-			A2(_user$project$View$parameterValuesIn, relevantParamValues, 'header'));
+			A2(_vorce$lagun$View$parameterValuesIn, relevantParamValues, 'header'));
 		var bodyParam = _elm_lang$core$List$head(
 			A2(
 				_elm_lang$core$List$map,
@@ -9402,7 +9402,7 @@ var _user$project$View$requestBuilder = F4(
 					var _p28 = _p27;
 					return _evancz$elm_http$Http$string(_p28._1);
 				},
-				A2(_user$project$View$parameterValuesIn, relevantParamValues, 'body')));
+				A2(_vorce$lagun$View$parameterValuesIn, relevantParamValues, 'body')));
 		var otherHeaders = A2(
 			_elm_lang$core$Maybe$map,
 			function (_p29) {
@@ -9433,12 +9433,12 @@ var _user$project$View$requestBuilder = F4(
 				A2(
 					_elm_lang$core$Basics_ops['++'],
 					url,
-					A2(_user$project$View$pathWithVariables, path$, pathParams)),
+					A2(_vorce$lagun$View$pathWithVariables, path$, pathParams)),
 				queryParams),
 			body: A2(_elm_lang$core$Maybe$withDefault, _evancz$elm_http$Http$empty, bodyParam)
 		};
 	});
-var _user$project$View$operationEntry = F5(
+var _vorce$lagun$View$operationEntry = F5(
 	function (url, paramValues, path$, results, _p30) {
 		var _p31 = _p30;
 		var _p33 = _p31._0;
@@ -9511,8 +9511,8 @@ var _user$project$View$operationEntry = F5(
 												[
 													_elm_lang$html$Html$text('Parameters')
 												])),
-											_user$project$View$parametersTable(
-											A4(_user$project$View$parametersTableBody, paramValues, path$, _p33, _p32.parameters)),
+											_vorce$lagun$View$parametersTable(
+											A4(_vorce$lagun$View$parametersTableBody, paramValues, path$, _p33, _p32.parameters)),
 											A2(
 											_elm_lang$html$Html$h6,
 											_elm_lang$core$Native_List.fromArray(
@@ -9521,14 +9521,14 @@ var _user$project$View$operationEntry = F5(
 												[
 													_elm_lang$html$Html$text('Responses')
 												])),
-											_user$project$View$responsesTable(_p32.responses),
+											_vorce$lagun$View$responsesTable(_p32.responses),
 											A3(
-											_user$project$View$requestButton,
+											_vorce$lagun$View$requestButton,
 											path$,
 											_p33,
-											A4(_user$project$View$requestBuilder, url, _p33, path$, paramValues)),
+											A4(_vorce$lagun$View$requestBuilder, url, _p33, path$, paramValues)),
 											A2(
-											_user$project$View$requestResult,
+											_vorce$lagun$View$requestResult,
 											{ctor: '_Tuple2', _0: path$, _1: _p33},
 											results)
 										]))
@@ -9536,7 +9536,7 @@ var _user$project$View$operationEntry = F5(
 						]))
 				]));
 	});
-var _user$project$View$operationList = F5(
+var _vorce$lagun$View$operationList = F5(
 	function (url, paramValues, path$, ops, results) {
 		return A2(
 			_elm_lang$html$Html$dl,
@@ -9544,10 +9544,10 @@ var _user$project$View$operationList = F5(
 				[]),
 			A2(
 				_elm_lang$core$List$map,
-				A4(_user$project$View$operationEntry, url, paramValues, path$, results),
+				A4(_vorce$lagun$View$operationEntry, url, paramValues, path$, results),
 				_elm_lang$core$Dict$toList(ops)));
 	});
-var _user$project$View$pathList = F4(
+var _vorce$lagun$View$pathList = F4(
 	function (spec, paramValues, expanded, results) {
 		return A2(
 			_elm_lang$html$Html$div,
@@ -9565,11 +9565,11 @@ var _user$project$View$pathList = F4(
 							var _p35 = _p34;
 							var _p36 = _p35._0;
 							return A3(
-								_user$project$View$pathEntry,
+								_vorce$lagun$View$pathEntry,
 								_p36,
 								expanded,
 								A5(
-									_user$project$View$operationList,
+									_vorce$lagun$View$operationList,
 									A2(
 										_elm_lang$core$Basics_ops['++'],
 										'http://',
@@ -9582,7 +9582,7 @@ var _user$project$View$pathList = F4(
 						_elm_lang$core$Dict$toList(spec.paths)))
 				]));
 	});
-var _user$project$View$specUrlInput = function (specUrl) {
+var _vorce$lagun$View$specUrlInput = function (specUrl) {
 	return A2(
 		_elm_lang$html$Html$input,
 		_elm_lang$core$Native_List.fromArray(
@@ -9592,14 +9592,14 @@ var _user$project$View$specUrlInput = function (specUrl) {
 				_elm_lang$html$Html_Attributes$value(specUrl),
 				_elm_lang$html$Html_Events$onInput(
 				function (i) {
-					return _user$project$Lagun$FetchSpec(
+					return _vorce$lagun$Lagun$FetchSpec(
 						_elm_lang$core$Maybe$Just(i));
 				})
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[]));
 };
-var _user$project$View$headerHtml = function (specUrl) {
+var _vorce$lagun$View$headerHtml = function (specUrl) {
 	return _elm_lang$core$Native_List.fromArray(
 		[
 			A2(
@@ -9610,7 +9610,7 @@ var _user$project$View$headerHtml = function (specUrl) {
 				]),
 			_elm_lang$core$Native_List.fromArray(
 				[
-					_user$project$View$specUrlInput(specUrl)
+					_vorce$lagun$View$specUrlInput(specUrl)
 				])),
 			A2(
 			_elm_lang$html$Html$div,
@@ -9625,7 +9625,7 @@ var _user$project$View$headerHtml = function (specUrl) {
 					_elm_lang$core$Native_List.fromArray(
 						[
 							_elm_lang$html$Html_Events$onClick(
-							_user$project$Lagun$FetchSpec(
+							_vorce$lagun$Lagun$FetchSpec(
 								_elm_lang$core$Maybe$Just(specUrl)))
 						]),
 					_elm_lang$core$Native_List.fromArray(
@@ -9635,7 +9635,7 @@ var _user$project$View$headerHtml = function (specUrl) {
 				]))
 		]);
 };
-var _user$project$View$view = function (_p37) {
+var _vorce$lagun$View$view = function (_p37) {
 	var _p38 = _p37;
 	var _p41 = _p38.specUrl;
 	var _p39 = _p38.spec;
@@ -9655,7 +9655,7 @@ var _user$project$View$view = function (_p37) {
 						[
 							_elm_lang$html$Html_Attributes$class('row')
 						]),
-					_user$project$View$headerHtml(_p41)),
+					_vorce$lagun$View$headerHtml(_p41)),
 					A2(
 					_elm_lang$html$Html$div,
 					_elm_lang$core$Native_List.fromArray(
@@ -9692,7 +9692,7 @@ var _user$project$View$view = function (_p37) {
 								[]),
 							_elm_lang$core$Native_List.fromArray(
 								[])),
-							A4(_user$project$View$pathList, _p40, _p38.paramValues, _p38.expanded, _p38.requestResults)
+							A4(_vorce$lagun$View$pathList, _p40, _p38.paramValues, _p38.expanded, _p38.requestResults)
 						]))
 				]));
 	} else {
@@ -9718,26 +9718,33 @@ var _user$project$View$view = function (_p37) {
 						[
 							_elm_lang$html$Html_Attributes$class('row')
 						]),
-					_user$project$View$headerHtml(_p41))
+					_vorce$lagun$View$headerHtml(_p41))
 				]));
 	}
 };
 
-var _user$project$Main$main = {
-	main: _elm_lang$html$Html_App$program(
+var _vorce$lagun$Main$main = {
+	main: _elm_lang$html$Html_App$programWithFlags(
 		{
-			init: _user$project$Lagun$init('http://petstore.swagger.io/v2/swagger.json'),
-			update: _user$project$Lagun$update,
-			view: _user$project$View$view,
+			init: _vorce$lagun$Lagun$init,
+			update: _vorce$lagun$Lagun$update,
+			view: _vorce$lagun$View$view,
 			subscriptions: function (_p0) {
 				return _elm_lang$core$Platform_Sub$none;
 			}
+		}),
+	flags: A2(
+		_elm_lang$core$Json_Decode$andThen,
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'specUrl', _elm_lang$core$Json_Decode$string),
+		function (specUrl) {
+			return _elm_lang$core$Json_Decode$succeed(
+				{specUrl: specUrl});
 		})
 };
 
 var Elm = {};
 Elm['Main'] = Elm['Main'] || {};
-_elm_lang$core$Native_Platform.addPublicModule(Elm['Main'], 'Main', typeof _user$project$Main$main === 'undefined' ? null : _user$project$Main$main);
+_elm_lang$core$Native_Platform.addPublicModule(Elm['Main'], 'Main', typeof _vorce$lagun$Main$main === 'undefined' ? null : _vorce$lagun$Main$main);
 
 if (typeof define === "function" && define['amd'])
 {
