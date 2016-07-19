@@ -98,6 +98,7 @@ parameterValuesIn paramValues in' =
 
 requestBuilder : String -> String -> String -> ParameterValues -> Http.Request
 requestBuilder url verb path' paramValues =
+    -- TODO Add support for formData
     let
         relevantParamValues =
             Dict.filter (\( p, v, _, _ ) _ -> p == path' && v == verb) paramValues

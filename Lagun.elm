@@ -19,9 +19,9 @@ type alias Model =
   requestResults : RequestResults }
 
 
-init : String -> ( Model, Cmd Msg )
-init url =
-  ( Model url Maybe.Nothing Set.empty Dict.empty Dict.empty, getJsonSpec url)
+init : { specUrl : String } -> ( Model, Cmd Msg )
+init flags =
+  ( Model flags.specUrl Maybe.Nothing Set.empty Dict.empty Dict.empty, getJsonSpec flags.specUrl)
 
 
 

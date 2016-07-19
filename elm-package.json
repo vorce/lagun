@@ -1,7 +1,7 @@
 {
-    "version": "1.0.0",
+    "version": "0.2.0",
     "summary": "Interactive UI for open api specs",
-    "repository": "https://github.com/user/project.git",
+    "repository": "https://github.com/vorce/lagun.git",
     "license": "BSD3",
     "source-directories": [
         "."

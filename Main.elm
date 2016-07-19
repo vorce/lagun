@@ -5,10 +5,10 @@ import View exposing (view)
 import Html.App as Html
 
 
-main : Program Never
+main : Program { specUrl : String }
 main =
-    Html.program
-        { init = init "http://petstore.swagger.io/v2/swagger.json"
+    Html.programWithFlags
+        { init = init
         , update = update
         , view = view
         , subscriptions = \_ -> Sub.none
