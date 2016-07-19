@@ -16,12 +16,13 @@ type alias Model =
   spec : Maybe Spec,
   expanded : Set String,
   paramValues : ParameterValues,
-  requestResults : RequestResults }
+  requestResults : RequestResults,
+  servingHost: String }
 
 
-init : { specUrl : String } -> ( Model, Cmd Msg )
+init : { specUrl : String, servingHost: String } -> ( Model, Cmd Msg )
 init flags =
-  ( Model flags.specUrl Maybe.Nothing Set.empty Dict.empty Dict.empty, getJsonSpec flags.specUrl)
+  ( Model flags.specUrl Maybe.Nothing Set.empty Dict.empty Dict.empty flags.servingHost, getJsonSpec flags.specUrl flags.servingHost)
 
 
 
@@ -47,33 +48,33 @@ update action model =
         url =
           (Maybe.withDefault model.specUrl maybeUrl)
       in
-        ( Model url model.spec model.expanded model.paramValues model.requestResults
-        , getJsonSpec url
+        ( Model url model.spec model.expanded model.paramValues model.requestResults model.servingHost
+        , getJsonSpec url model.servingHost
         )
 
     FetchSpecOk spec ->
-      ( Model model.specUrl (Maybe.Just spec) model.expanded model.paramValues model.requestResults
+      ( Model model.specUrl (Maybe.Just spec) model.expanded model.paramValues model.requestResults model.servingHost
       , Cmd.none
       )
 
     FetchSpecFail (Http.UnexpectedPayload error) ->
-      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults
+      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults model.servingHost
       , debugCmd (debugOutput "Spec parse failure" error)) -- TODO: Actually show the error message to the user
 
     FetchSpecFail Http.Timeout ->
-      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults
+      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults model.servingHost
       , debugCmd (debugOutput "Spec fetch timed out" ""))
 
     FetchSpecFail Http.NetworkError ->
-      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults
+      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults model.servingHost
       , debugCmd (debugOutput "Spec fetch failed due to a network error" ""))
 
     FetchSpecFail (Http.BadResponse code msg) ->
-      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults
+      (Model model.specUrl Maybe.Nothing model.expanded model.paramValues model.requestResults model.servingHost
       , debugCmd (debugOutput "Spec fetch failed due to a http error" msg))
 
     ExpansionToggled expanded ->
-      ( Model model.specUrl model.spec expanded model.paramValues model.requestResults
+      ( Model model.specUrl model.spec expanded model.paramValues model.requestResults model.servingHost
       , Cmd.none
       )
 
@@ -81,14 +82,15 @@ update action model =
       ( model, tryRequest path' verb request )
 
     RequestResult key result ->
-      ( Model model.specUrl model.spec model.expanded model.paramValues (Dict.insert key result model.requestResults),
-      Cmd.none )
+      ( Model model.specUrl model.spec model.expanded model.paramValues (Dict.insert key result model.requestResults)  model.servingHost
+      , Cmd.none
+      )
 
     RequestFail errorMsg ->
       (model, Cmd.none) -- TODO Actually show the error message
 
     ParameterInput paramValues ->
-      ( Model model.specUrl model.spec model.expanded paramValues model.requestResults
+      ( Model model.specUrl model.spec model.expanded paramValues model.requestResults model.servingHost
       , Cmd.none
       )
 
@@ -110,9 +112,9 @@ tryRequest path' verb req =
     Task.perform RequestFail (\r -> RequestResult (path', verb) r) (Http.send settings req)
 
 
-getJsonSpec : String -> Cmd Msg
-getJsonSpec url =
-  Task.perform FetchSpecFail FetchSpecOk (Http.get (decodeSpec (extractHost url)) url)
+getJsonSpec : String -> String -> Cmd Msg
+getJsonSpec url servingHost =
+  Task.perform FetchSpecFail FetchSpecOk (Http.get (decodeSpec (extractHost url servingHost)) url)
 
 
 type alias RequestResults =
@@ -238,12 +240,17 @@ optionalFieldWithDefault : String -> String -> Json.Decoder String
 optionalFieldWithDefault field default =
   Json.oneOf [ field := Json.string, Json.succeed default ]
 
-extractHost : String -> String
-extractHost url =
+extractHost : String -> String -> String
+extractHost url servingHost = -- expects servingHost to be something like: "localhost:1337"
   let
     parts = String.split "/" url
+    isHttp = (String.left 4 url) == "http"
   in
-    Maybe.withDefault "localhost" (List.drop 2 parts |> List.head)
+    case isHttp of
+      True ->
+        Maybe.withDefault servingHost (List.drop 2 parts |> List.head)
+      False ->
+        servingHost
 
 decodeSpec : String -> Json.Decoder Spec
 decodeSpec defaultHost =

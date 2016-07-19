@@ -23,7 +23,8 @@
 
 <script type="text/javascript">
 Elm.Main.fullscreen({
-    specUrl: 'http://petstore.swagger.io/v2/swagger.json'
+    specUrl: 'http://petstore.swagger.io/v2/swagger.json',
+    servingHost: location.hostname+(location.port ? ':'+location.port: '')
   });
 </script>
 

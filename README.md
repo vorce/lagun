@@ -10,13 +10,18 @@ Uses:
 - [Font Awesome](https://fortawesome.github.io/Font-Awesome/)
 - [heroku-buildpack-elm](https://github.com/srid/heroku-buildpack-elm)
 
-[Demo on Heroku](http://trylagun.herokuapp.com/) (also available on [http://vorce.github.io/lagun/](http://vorce.github.io/lagun/))
+[Demo on Github pages for swagger's petstore sample API](http://vorce.github.io/lagun/) (Also available on [trylagun.herokuapp.com](http://trylagun.herokuapp.com/))
 
 ## Build
 
     elm-make Main.elm --warn --output elm.js
 
-Open `index.html`
+or
+
+    make
+
+If everything compiles fine open `index.html` to use Lagun.
+If you want to change the default specification url simply edit `index.html`, and modify the `specUrl` setting passed into `Elm.Main.fullscreen`.
 
 ## Supported specification formats
 
@@ -32,4 +37,4 @@ I doubt I will add support for other specs (such as [RAML](http://raml.org/)). P
 - Some tests would be fun and useful
 - Show version of Lagun somewhere on the page (bottom?)
 - Structure the code in a nicer way
-- Make it friendlier for real usage: set url of spec, disable input of url of spec etc 
+
