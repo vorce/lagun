@@ -15,7 +15,7 @@ Uses:
 
 ## Build
 
-    elm-make Main.elm --warn --output elm.js
+    elm-make src/Main.elm --warn --output elm.js
 
 or
 
@@ -23,6 +23,7 @@ or
 
 If everything compiles fine open `index.html` to use Lagun.
 If you want to change the default specification url simply edit `index.html`, and modify the `specUrl` setting passed into `Elm.Main.fullscreen`.
+This could also be a path to a file (for example '/docs/myspec.json').
 
 ## Supported specification formats
 
