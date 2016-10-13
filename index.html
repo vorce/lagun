@@ -26,9 +26,13 @@ var defaultSpecUrl = 'http://petstore.swagger.io/v2/swagger.json';
 var param = location.search.substring(1);
 var item = param.split("=");
 var specUrl = item[0] == 'spec' ? decodeURIComponent(item[1]) : defaultSpecUrl;
+
+var a = document.createElement('a');
+a.href = specUrl;
+var servingHost = a.protocol + '//' + a.hostname + (a.port ? ':' + a.port : '');
 Elm.Main.fullscreen({
     specUrl: specUrl,
-    servingHost: location.hostname+(location.port ? ':' + location.port : '')
+    servingHost: servingHost
   });
 </script>
 

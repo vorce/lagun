@@ -362,13 +362,25 @@ pathEntry pathName expanded opsList =
         ]
 
 
+urlFromSpec : Spec -> String
+urlFromSpec spec =
+    (Maybe.withDefault "http" (List.head spec.schemes) ++ "://" ++ spec.host ++ spec.basePath)
+
+
 pathList : Spec -> ParameterValues -> Set String -> RequestResults -> Html Msg
 pathList spec paramValues expanded results =
     div []
         [ dl []
             (List.map
                 (\( pathName, ops ) ->
-                    pathEntry pathName expanded (operationList ("http://" ++ spec.host ++ spec.basePath) paramValues pathName ops results)
+                    pathEntry pathName
+                        expanded
+                        (operationList (urlFromSpec spec)
+                            paramValues
+                            pathName
+                            ops
+                            results
+                        )
                 )
                 (Dict.toList spec.paths)
             )
