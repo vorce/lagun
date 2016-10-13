@@ -8403,29 +8403,55 @@ var _evancz$elm_markdown$Markdown$Options = F4(
 		return {githubFlavored: a, defaultHighlighting: b, sanitize: c, smartypants: d};
 	});
 
-var _vorce$lagun$Lagun$extractHost = F2(
-	function (url, servingHost) {
-		var isHttp = _elm_lang$core$Native_Utils.eq(
-			A2(_elm_lang$core$String$left, 4, url),
-			'http');
-		var parts = A2(_elm_lang$core$String$split, '/', url);
-		var _p0 = isHttp;
-		if (_p0 === true) {
-			return A2(
-				_elm_lang$core$Maybe$withDefault,
-				servingHost,
-				_elm_lang$core$List$head(
-					A2(_elm_lang$core$List$drop, 2, parts)));
-		} else {
-			return servingHost;
-		}
-	});
+var _vorce$lagun$Lagun$protocolFrom = function (uri) {
+	var isHttp = _elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$String$left, 4, uri),
+		'http');
+	var parts = A2(_elm_lang$core$String$split, ':', uri);
+	var _p0 = isHttp;
+	if (_p0 === true) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			'http',
+			_elm_lang$core$List$head(parts));
+	} else {
+		return 'file';
+	}
+};
+var _vorce$lagun$Lagun$hostFrom = function (uri) {
+	var isHttp = _elm_lang$core$Native_Utils.eq(
+		A2(_elm_lang$core$String$left, 4, uri),
+		'http');
+	var parts = A2(_elm_lang$core$String$split, '/', uri);
+	var _p1 = isHttp;
+	if (_p1 === true) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			uri,
+			_elm_lang$core$List$head(
+				A2(_elm_lang$core$List$drop, 2, parts)));
+	} else {
+		return uri;
+	}
+};
 var _vorce$lagun$Lagun$optionalFieldWithDefault = F2(
 	function (field, $default) {
 		return _elm_lang$core$Json_Decode$oneOf(
 			_elm_lang$core$Native_List.fromArray(
 				[
 					A2(_elm_lang$core$Json_Decode_ops[':='], field, _elm_lang$core$Json_Decode$string),
+					_elm_lang$core$Json_Decode$succeed($default)
+				]));
+	});
+var _vorce$lagun$Lagun$optionalListFieldWithDefault = F2(
+	function (field, $default) {
+		return _elm_lang$core$Json_Decode$oneOf(
+			_elm_lang$core$Native_List.fromArray(
+				[
+					A2(
+					_elm_lang$core$Json_Decode_ops[':='],
+					field,
+					_elm_lang$core$Json_Decode$list(_elm_lang$core$Json_Decode$string)),
 					_elm_lang$core$Json_Decode$succeed($default)
 				]));
 	});
@@ -8443,9 +8469,9 @@ var _vorce$lagun$Lagun$Model = F6(
 	function (a, b, c, d, e, f) {
 		return {specUrl: a, spec: b, expanded: c, paramValues: d, requestResults: e, servingHost: f};
 	});
-var _vorce$lagun$Lagun$Spec = F5(
-	function (a, b, c, d, e) {
-		return {info: a, paths: b, swagger: c, host: d, basePath: e};
+var _vorce$lagun$Lagun$Spec = F6(
+	function (a, b, c, d, e, f) {
+		return {info: a, paths: b, swagger: c, host: d, basePath: e, schemes: f};
 	});
 var _vorce$lagun$Lagun$Info = F3(
 	function (a, b, c) {
@@ -8480,8 +8506,8 @@ var _vorce$lagun$Lagun$typeInfoVal = function (in$) {
 				])));
 };
 var _vorce$lagun$Lagun$typeInfo = function (in$) {
-	var _p1 = in$;
-	switch (_p1) {
+	var _p2 = in$;
+	switch (_p2) {
 		case 'body':
 			return _vorce$lagun$Lagun$typeInfoVal(in$);
 		case 'query':
@@ -8545,15 +8571,25 @@ var _vorce$lagun$Lagun$decodePaths = A2(
 	_elm_lang$core$Native_List.fromArray(
 		['paths']),
 	_elm_lang$core$Json_Decode$dict(_vorce$lagun$Lagun$decodeOperations));
-var _vorce$lagun$Lagun$decodeSpec = function (defaultHost) {
-	return A6(
-		_elm_lang$core$Json_Decode$object5,
+var _vorce$lagun$Lagun$decodeSpec = function (servingHost) {
+	return A7(
+		_elm_lang$core$Json_Decode$object6,
 		_vorce$lagun$Lagun$Spec,
 		_vorce$lagun$Lagun$decodeInfo,
 		_vorce$lagun$Lagun$decodePaths,
 		A2(_elm_lang$core$Json_Decode_ops[':='], 'swagger', _elm_lang$core$Json_Decode$string),
-		A2(_vorce$lagun$Lagun$optionalFieldWithDefault, 'host', defaultHost),
-		_vorce$lagun$Lagun$optionalField('basePath'));
+		A2(
+			_vorce$lagun$Lagun$optionalFieldWithDefault,
+			'host',
+			_vorce$lagun$Lagun$hostFrom(servingHost)),
+		_vorce$lagun$Lagun$optionalField('basePath'),
+		A2(
+			_vorce$lagun$Lagun$optionalListFieldWithDefault,
+			'schemes',
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_vorce$lagun$Lagun$protocolFrom(servingHost)
+				])));
 };
 var _vorce$lagun$Lagun$ParameterInput = function (a) {
 	return {ctor: 'ParameterInput', _0: a};
@@ -8600,8 +8636,7 @@ var _vorce$lagun$Lagun$getJsonSpec = F2(
 			_vorce$lagun$Lagun$FetchSpecOk,
 			A2(
 				_evancz$elm_http$Http$get,
-				_vorce$lagun$Lagun$decodeSpec(
-					A2(_vorce$lagun$Lagun$extractHost, url, servingHost)),
+				_vorce$lagun$Lagun$decodeSpec(servingHost),
 				url));
 	});
 var _vorce$lagun$Lagun$init = function (flags) {
@@ -8613,10 +8648,10 @@ var _vorce$lagun$Lagun$init = function (flags) {
 };
 var _vorce$lagun$Lagun$update = F2(
 	function (action, model) {
-		var _p2 = action;
-		switch (_p2.ctor) {
+		var _p3 = action;
+		switch (_p3.ctor) {
 			case 'FetchSpec':
-				var url = A2(_elm_lang$core$Maybe$withDefault, model.specUrl, _p2._0);
+				var url = A2(_elm_lang$core$Maybe$withDefault, model.specUrl, _p3._0);
 				return {
 					ctor: '_Tuple2',
 					_0: A6(_vorce$lagun$Lagun$Model, url, model.spec, model.expanded, model.paramValues, model.requestResults, model.servingHost),
@@ -8628,7 +8663,7 @@ var _vorce$lagun$Lagun$update = F2(
 					_0: A6(
 						_vorce$lagun$Lagun$Model,
 						model.specUrl,
-						_elm_lang$core$Maybe$Just(_p2._0),
+						_elm_lang$core$Maybe$Just(_p3._0),
 						model.expanded,
 						model.paramValues,
 						model.requestResults,
@@ -8636,13 +8671,13 @@ var _vorce$lagun$Lagun$update = F2(
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'FetchSpecFail':
-				switch (_p2._0.ctor) {
+				switch (_p3._0.ctor) {
 					case 'UnexpectedPayload':
 						return {
 							ctor: '_Tuple2',
 							_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults, model.servingHost),
 							_1: _vorce$lagun$Lagun$debugCmd(
-								A2(_vorce$lagun$Lagun$debugOutput, 'Spec parse failure', _p2._0._0))
+								A2(_vorce$lagun$Lagun$debugOutput, 'Spec parse failure', _p3._0._0))
 						};
 					case 'Timeout':
 						return {
@@ -8663,20 +8698,20 @@ var _vorce$lagun$Lagun$update = F2(
 							ctor: '_Tuple2',
 							_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, _elm_lang$core$Maybe$Nothing, model.expanded, model.paramValues, model.requestResults, model.servingHost),
 							_1: _vorce$lagun$Lagun$debugCmd(
-								A2(_vorce$lagun$Lagun$debugOutput, 'Spec fetch failed due to a http error', _p2._0._1))
+								A2(_vorce$lagun$Lagun$debugOutput, 'Spec fetch failed due to a http error', _p3._0._1))
 						};
 				}
 			case 'ExpansionToggled':
 				return {
 					ctor: '_Tuple2',
-					_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, _p2._0, model.paramValues, model.requestResults, model.servingHost),
+					_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, _p3._0, model.paramValues, model.requestResults, model.servingHost),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'TryRequest':
 				return {
 					ctor: '_Tuple2',
 					_0: model,
-					_1: A3(_vorce$lagun$Lagun$tryRequest, _p2._0._0, _p2._0._1, _p2._1)
+					_1: A3(_vorce$lagun$Lagun$tryRequest, _p3._0._0, _p3._0._1, _p3._1)
 				};
 			case 'RequestResult':
 				return {
@@ -8687,7 +8722,7 @@ var _vorce$lagun$Lagun$update = F2(
 						model.spec,
 						model.expanded,
 						model.paramValues,
-						A3(_elm_lang$core$Dict$insert, _p2._0, _p2._1, model.requestResults),
+						A3(_elm_lang$core$Dict$insert, _p3._0, _p3._1, model.requestResults),
 						model.servingHost),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -8696,7 +8731,7 @@ var _vorce$lagun$Lagun$update = F2(
 			default:
 				return {
 					ctor: '_Tuple2',
-					_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, model.expanded, _p2._0, model.requestResults, model.servingHost),
+					_0: A6(_vorce$lagun$Lagun$Model, model.specUrl, model.spec, model.expanded, _p3._0, model.requestResults, model.servingHost),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
@@ -8715,6 +8750,18 @@ var _vorce$lagun$View$fontAwesome = function (name) {
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[]));
+};
+var _vorce$lagun$View$urlFromSpec = function (spec) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		A2(
+			_elm_lang$core$Maybe$withDefault,
+			'http',
+			_elm_lang$core$List$head(spec.schemes)),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			'://',
+			A2(_elm_lang$core$Basics_ops['++'], spec.host, spec.basePath)));
 };
 var _vorce$lagun$View$renderExpandedPath = F3(
 	function (pathName, expanded, opsList) {
@@ -9582,10 +9629,7 @@ var _vorce$lagun$View$pathList = F4(
 								expanded,
 								A5(
 									_vorce$lagun$View$operationList,
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										'http://',
-										A2(_elm_lang$core$Basics_ops['++'], spec.host, spec.basePath)),
+									_vorce$lagun$View$urlFromSpec(spec),
 									paramValues,
 									_p36,
 									_p35._1,
