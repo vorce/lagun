@@ -23,7 +23,8 @@ or
 
 If everything compiles fine open `index.html` to use Lagun.
 If you want to change the default specification url simply edit `index.html`, and modify the `specUrl` setting passed into `Elm.Main.fullscreen`.
-This could also be a path to a file (for example '/docs/myspec.json').
+This could also be a path to a file (for example '/docs/myspec.json'). You can also set the specUrl by providing a `spec` query parameter to index.html.
+For example: `http://lagunlocation.com/index.html?spec=http://speclocation/swagger`
 
 ## Supported specification formats
 

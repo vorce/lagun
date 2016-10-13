@@ -127,7 +127,7 @@ requestBuilder url verb path' paramValues =
         --   parameterValuesIn relevantParamValues "formData"
         --     |> List.map(\( ( _, _, _, name ), val ) -> ( name, val ))
         -- Set Content-Type header to application/x-www-form-urlencoded
-        -- and Http.uriEncode formDataString (param1=hello&favorite+flavor=vanilla)
+        -- and body to: Http.uriEncode formDataString (param1=hello&favorite flavor=vanilla)
         otherHeaders =
             Maybe.map (\_ -> [ ( "Content-Type", "application/json" ) ]) bodyParam
     in
