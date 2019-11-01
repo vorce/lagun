@@ -1,7 +1,5 @@
 # Lagun
 
-[![Heroku](http://heroku-badge.herokuapp.com/?app=trylagun&style=flat)](http://trylagun.herokuapp.com/)
-
 An interactive web UI for Open API (2.0) specs. Think of it as an alternative to the default [Swagger UI](https://github.com/swagger-api/swagger-ui).
 My first project for learning and exploring Elm.
 
@@ -11,7 +9,7 @@ Uses:
 - [Font Awesome](https://fortawesome.github.io/Font-Awesome/)
 - [heroku-buildpack-elm](https://github.com/srid/heroku-buildpack-elm)
 
-[Demo on Github pages for swagger's petstore sample API](http://vorce.github.io/lagun/) (also available on [trylagun.herokuapp.com](http://trylagun.herokuapp.com/))
+[Demo on Github pages for swagger's petstore sample API](http://vorce.github.io/lagun/)
 
 ## Build
 
